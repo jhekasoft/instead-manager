@@ -178,8 +178,15 @@ def local_list_action(verbose: bool):
 
 
 def run_action(name: str):
+    running_name = name
     print('Running %s ...' % name)
-    subprocess.Popen('instead -game %s &>/dev/null' % name, shell=True)
+
+    # IDF check
+    files = glob.glob('%s%s.idf' % (os.path.expanduser(games_path), name))
+    if len(files) > 0:
+        running_name = running_name+'.idf'
+
+    subprocess.Popen('instead -game %s &>/dev/null' % running_name, shell=True)
 
 
 parser = argparse.ArgumentParser(description='INSTEAD games manager %s' % __version__)
