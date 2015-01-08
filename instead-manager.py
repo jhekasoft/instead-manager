@@ -208,15 +208,13 @@ def delete_action(name: str):
 
 
 def is_ansi_output():
-    for handle in [sys.stdout, sys.stderr]:
-        if (hasattr(handle, "isatty") and handle.isatty()) or ('TERM' in os.environ and os.environ['TERM']=='ANSI'):
-            if platform.system()=='Windows' and not ('TERM' in os.environ and os.environ['TERM']=='ANSI'):
-                return False
-            else:
-                return True
-        else:
+    if (hasattr(sys.stdout, "isatty") and sys.stdout.isatty()) or ('TERM' in os.environ and os.environ['TERM']=='ANSI'):
+        if platform.system()=='Windows' and not ('TERM' in os.environ and os.environ['TERM']=='ANSI'):
             return False
-    return False
+        else:
+            return True
+
+        return False
 
 
 parser = argparse.ArgumentParser(description='%s (INSTEAD games manager) %s' % (__title__, __version__))
@@ -236,7 +234,7 @@ parser.add_argument('-d', '--delete', nargs='?', type=str,
                     help='delete installed game')
 parser.add_argument('-v', '--verbose', action='store_true',
                     help='detailed print')
-parser.add_argument('-ansi', '--ansi-output', choices=['on', 'off', 'auto'], nargs='?', const='auto',
+parser.add_argument('-ansi', '--ansi-output', choices=['on', 'off', 'auto'], nargs='?', default='auto', const='auto',
                     help='ANSI escaped chars output')
 
 args = parser.parse_args()
@@ -251,7 +249,6 @@ games_path = settings['games_path']
 strip = False
 if 'off' == args.ansi_output or ('auto' == args.ansi_output and not is_ansi_output()):
     strip = True
-
 coloramaInit(strip=strip)
 
 if args.update_repositories:
