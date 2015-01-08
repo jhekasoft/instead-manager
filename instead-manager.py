@@ -189,6 +189,15 @@ def run_action(name: str):
     subprocess.Popen('instead -game %s &>/dev/null' % running_name, shell=True)
 
 
+def delete_action(name: str):
+    game_folder_path = os.path.expanduser(games_path) + name
+    if os.path.exists(game_folder_path):
+        shutil.rmtree(game_folder_path)
+        print( "Folder '%s' has been deleted" % game_folder_path )
+    else:
+        print( "Folder '%s' doesn't exist. Are name is correct?" % game_folder_path)
+
+
 parser = argparse.ArgumentParser(description='INSTEAD games manager %s' % __version__)
 parser.add_argument('-u', '--update-repositories', action='store_true',
                    help='update repositories')
@@ -204,6 +213,8 @@ parser.add_argument('-ll', '--local-list', action='store_true',
                    help='list installed games')
 parser.add_argument('-v', '--verbose', action='store_true',
                    help='detailed print')
+parser.add_argument('-d', '--delete', nargs='?', type=str, const='const',
+                    help='delete installed game')
 
 args = parser.parse_args()
 
@@ -226,3 +237,5 @@ elif args.local_list:
     local_list_action(args.verbose)
 elif args.run:
     run_action(args.run)
+elif args.delete:
+    delete_action(args.delete)
