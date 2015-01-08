@@ -196,11 +196,16 @@ def run_action(name: str):
 
 def delete_action(name: str):
     game_folder_path = os.path.expanduser(games_path) + name
+    game_idf_path = os.path.expanduser(games_path) + name + '.idf'
     if os.path.exists(game_folder_path):
         shutil.rmtree(game_folder_path)
-        print( "Folder '%s' has been deleted" % game_folder_path )
+        print("Folder '%s' has been deleted" % game_folder_path)
+    elif os.path.exists(game_idf_path):
+        os.unlink(game_idf_path)
+        print("File '%s' has been deleted" % game_idf_path)
     else:
-        print( "Folder '%s' doesn't exist. Are name is correct?" % game_folder_path)
+        print("Folder '%s' doesn't exist. Is name correct?" % game_folder_path)
+
 
 def is_ansi_output():
     for handle in [sys.stdout, sys.stderr]:
