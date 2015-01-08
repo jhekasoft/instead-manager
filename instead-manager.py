@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 __author__     = "Evgeniy Efremov"
-__version__    = "0.2"
+__version__    = "0.3"
 __email__      = "jhekasoft@gmail.com"
 
 #import time
@@ -73,6 +73,22 @@ def print_game_list(game_list: int, verbose: bool):
             ))
 
 
+def get_sorted_local_game_list():
+    files = glob.glob('%s*' % os.path.expanduser(games_path))
+
+    local_game_list = []
+    for file in files:
+        game_name = os.path.basename(file)
+        match = re.search('(.*)\.idf$', game_name, re.IGNORECASE)
+        if match:
+            game_name = match.groups()[0]
+        local_game_list.append({'name': game_name})
+
+    local_game_list.sort(key=lambda game: (game['name']))
+
+    return local_game_list
+
+
 def size_format(size):
     suffix = 'B'
     for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
@@ -121,7 +137,7 @@ def search_action(search: str, verbose: bool):
     print_game_list(filtered_game_list, verbose)
 
 
-def install_action(name: str, run: bool, verbose: bool):
+def install_action(name: str, run: str, verbose: bool):
     game_list = get_sorted_game_list()
 
     search_regex = '.*%s.*' % re.escape(name)
@@ -154,6 +170,18 @@ def install_action(name: str, run: bool, verbose: bool):
             os.remove(game_filename)
             break
 
+
+def local_list_action(verbose: bool):
+    local_game_list = get_sorted_local_game_list()
+    for local_game in local_game_list:
+        print(local_game['name'])
+
+
+def run_action(name: str):
+    print('Running %s ...' % name)
+    subprocess.Popen('instead -game %s &>/dev/null' % name, shell=True)
+
+
 parser = argparse.ArgumentParser(description='INSTEAD games manager %s' % __version__)
 parser.add_argument('-u', '--update-repositories', action='store_true',
                    help='update repositories')
@@ -163,8 +191,10 @@ parser.add_argument('-s', '--search', nargs='?', type=str,
                    help='search games')
 parser.add_argument('-i', '--install', nargs='?', type=str,
                    help='install game by name or title')
-parser.add_argument('-r', '--run', action='store_true',
-                   help='run game after installation')
+parser.add_argument('-r', '--run', nargs='?', type=str, const='const',
+                   help='run game')
+parser.add_argument('-ll', '--local-list', action='store_true',
+                   help='list installed games')
 parser.add_argument('-v', '--verbose', action='store_true',
                    help='detailed print')
 
@@ -174,6 +204,7 @@ args = parser.parse_args()
 jsonSettingsData = open(os.path.dirname(os.path.realpath(__file__))+'/instead-manager-settings.json')
 settings = json.load(jsonSettingsData)
 repositories = settings['repositories']
+games_path = settings['games_path']
 
 if args.update_repositories:
     update_repositories_action()
@@ -184,3 +215,7 @@ elif args.search:
     search_action(args.search, args.verbose)
 elif args.install:
     install_action(args.install, args.run, args.verbose)
+elif args.local_list:
+    local_list_action(args.verbose)
+elif args.run:
+    run_action(args.run)
