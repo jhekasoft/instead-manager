@@ -1,29 +1,29 @@
 #!/usr/bin/env python
 
+__title__      = 'instead-manager'
+__version__    = "0.4"
 __author__     = "Evgeniy Efremov"
-__version__    = "0.3"
 __email__      = "jhekasoft@gmail.com"
 
-#import time
-import sys
 import os
+import sys
+import platform
 import glob
 import shutil
 import subprocess
-#import signal
-#import logging
 import json
 import re
 import argparse
 import urllib.request
 from xml.dom import minidom
+from packages.colorama import init as coloramaInit, Style
 
 
 def get_games_from_file(file_path):
     xml_doc = minidom.parse(file_path)
     xml_game_list = xml_doc.getElementsByTagName('game')
 
-    repository_filename = os.path.basename(file_path);
+    repository_filename = os.path.basename(file_path)
 
     game_list_unsorted = []
     for game in xml_game_list:
@@ -63,13 +63,18 @@ def get_sorted_game_list():
 def print_game_list(game_list: int, verbose: bool):
     for game in game_list:
         if verbose:
-            print("\033[1m%s\033[0m (%s) %s\n\033[1m%s\033[0m %s [%s]\nDescription URL: %s\nURL: %s\n" % (
-                game['title'], game['lang'], size_format(int(game['size'])), game['name'], game['version'],
+            print("%s%s%s (%s) %s\n%s%s%s %s [%s]\nDescription URL: %s\nURL: %s\n" % (
+                Style.BRIGHT, game['title'], Style.RESET_ALL,
+                game['lang'], size_format(int(game['size'])),
+                Style.BRIGHT, game['name'], Style.RESET_ALL,
+                game['version'],
                 game['repository_filename'], game['descurl'], game['url']
             ))
         else:
-            print("%s \033[1m%s\033[0m %s" % (
-                game['title'], game['name'], size_format(int(game['size']))
+            print("%s %s%s%s %s" % (
+                game['title'],
+                Style.BRIGHT, game['name'], Style.RESET_ALL,
+                size_format(int(game['size']))
             ))
 
 
@@ -197,24 +202,37 @@ def delete_action(name: str):
     else:
         print( "Folder '%s' doesn't exist. Are name is correct?" % game_folder_path)
 
+def is_ansi_output():
+    for handle in [sys.stdout, sys.stderr]:
+        if (hasattr(handle, "isatty") and handle.isatty()) or ('TERM' in os.environ and os.environ['TERM']=='ANSI'):
+            if platform.system()=='Windows' and not ('TERM' in os.environ and os.environ['TERM']=='ANSI'):
+                return False
+            else:
+                return True
+        else:
+            return False
+    return False
 
-parser = argparse.ArgumentParser(description='INSTEAD games manager %s' % __version__)
+
+parser = argparse.ArgumentParser(description='%s (INSTEAD games manager) %s' % (__title__, __version__))
 parser.add_argument('-u', '--update-repositories', action='store_true',
-                   help='update repositories')
+                    help='update repositories')
 parser.add_argument('-l', '--list', action='store_true',
-                   help='list games')
+                    help='list games')
 parser.add_argument('-s', '--search', nargs='?', type=str,
-                   help='search games')
+                    help='search games')
 parser.add_argument('-i', '--install', nargs='?', type=str,
-                   help='install game by name or title')
+                    help='install game by name or title')
 parser.add_argument('-r', '--run', nargs='?', type=str, const='const',
-                   help='run game')
+                    help='run game')
 parser.add_argument('-ll', '--local-list', action='store_true',
-                   help='list installed games')
-parser.add_argument('-v', '--verbose', action='store_true',
-                   help='detailed print')
-parser.add_argument('-d', '--delete', nargs='?', type=str, const='const',
+                    help='list installed games')
+parser.add_argument('-d', '--delete', nargs='?', type=str,
                     help='delete installed game')
+parser.add_argument('-v', '--verbose', action='store_true',
+                    help='detailed print')
+parser.add_argument('-ansi', '--ansi-output', choices=['on', 'off', 'auto'], nargs='?', const='auto',
+                    help='ANSI escaped chars output')
 
 args = parser.parse_args()
 
@@ -223,6 +241,13 @@ jsonSettingsData = open(os.path.dirname(os.path.realpath(__file__))+'/instead-ma
 settings = json.load(jsonSettingsData)
 repositories = settings['repositories']
 games_path = settings['games_path']
+
+# Init colors (colorama)
+strip = False
+if 'off' == args.ansi_output or ('auto' == args.ansi_output and not is_ansi_output()):
+    strip = True
+
+coloramaInit(strip=strip)
 
 if args.update_repositories:
     update_repositories_action()
