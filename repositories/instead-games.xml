@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <game_list version="1.0">
  <game>
+  <name>new_year</name>
+  <title>Новогодняя сказка</title>
+  <version>1.1a</version>
+  <url>http://instead-games.ru/download/instead-new_year-1.1a.zip</url>
+  <size>3867898</size>
+  <lang>ru</lang>
+  <descurl>http://instead-games.ru/game.php?ID=190</descurl>
+ </game>
+ <game>
   <name>sector-37</name>
   <title>Сектор-37</title>
   <version>0.3</version>
@@ -17,15 +26,6 @@
   <size>15622244</size>
   <lang>ru</lang>
   <descurl>http://instead-games.ru/game.php?ID=120</descurl>
- </game>
- <game>
-  <name>new_year</name>
-  <title>Новогодняя сказка</title>
-  <version>1.1</version>
-  <url>http://instead-games.ru/download/instead-new_year-1.1.zip</url>
-  <size>3867837</size>
-  <lang>ru</lang>
-  <descurl>http://instead-games.ru/game.php?ID=190</descurl>
  </game>
  <game>
   <name>return_of_red_hood</name>

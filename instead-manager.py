@@ -19,6 +19,18 @@ from xml.dom import minidom
 from packages.colorama import init as coloramaInit, Style
 
 
+class InsteadManager(object):
+    def get_sorted_game_list(self):
+        files = glob.glob('%s/repositories/*.xml' % os.path.dirname(os.path.realpath(__file__)));
+
+        game_list = []
+        for file in files:
+            game_list.extend(get_games_from_file(file))
+
+        game_list.sort(key=lambda game: (game['title']))
+
+        return game_list
+
 def get_games_from_file(file_path):
     xml_doc = minidom.parse(file_path)
     xml_game_list = xml_doc.getElementsByTagName('game')
@@ -46,18 +58,6 @@ def get_games_from_file(file_path):
         })
 
     return game_list_unsorted
-
-
-def get_sorted_game_list():
-    files = glob.glob('%s/repositories/*.xml' % os.path.dirname(os.path.realpath(__file__)));
-
-    game_list = []
-    for file in files:
-        game_list.extend(get_games_from_file(file))
-
-    game_list.sort(key=lambda game: (game['title']))
-
-    return game_list
 
 
 def print_game_list(game_list: int, verbose: bool):
@@ -126,12 +126,12 @@ def update_repositories_action():
 
 
 def list_action(verbose: bool):
-    game_list = get_sorted_game_list()
+    game_list = instead_manager.get_sorted_game_list()
     print_game_list(game_list, verbose)
 
 
 def search_action(search: str, verbose: bool):
-    game_list = get_sorted_game_list()
+    game_list = instead_manager.get_sorted_game_list()
 
     filtered_game_list = []
     search_regex = '.*%s.*' % re.escape(search)
@@ -143,7 +143,7 @@ def search_action(search: str, verbose: bool):
 
 
 def install_action(name: str, run: str, verbose: bool):
-    game_list = get_sorted_game_list()
+    game_list = instead_manager.get_sorted_game_list()
 
     search_regex = '.*%s.*' % re.escape(name)
     for game in game_list:
@@ -244,6 +244,7 @@ jsonSettingsData = open(os.path.dirname(os.path.realpath(__file__))+'/instead-ma
 settings = json.load(jsonSettingsData)
 repositories = settings['repositories']
 games_path = settings['games_path']
+instead_manager = InsteadManager()
 
 # Init colors (colorama)
 strip = False
