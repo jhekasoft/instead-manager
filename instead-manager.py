@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: UTF-8 -*-
 
 __title__      = 'instead-manager'
 __version__    = "0.4"
@@ -16,7 +17,7 @@ import re
 import argparse
 import urllib.request
 from xml.dom import minidom
-from packages.colorama import init as colorama_init, Style
+from packages.colorama import init as colorama_init, Style, AnsiToWin32
 
 
 class InsteadManager(object):
@@ -59,23 +60,6 @@ class InsteadManager(object):
 
         return game_list_unsorted
 
-    def print_game_list(self, game_list: int, verbose: bool):
-        for game in game_list:
-            if verbose:
-                print("%s%s%s (%s) %s\n%s%s%s %s [%s]\nDescription URL: %s\nURL: %s\n" % (
-                    Style.BRIGHT, game['title'], Style.RESET_ALL,
-                    game['lang'], InsteadManager.size_format(int(game['size'])),
-                    Style.BRIGHT, game['name'], Style.RESET_ALL,
-                    game['version'],
-                    game['repository_filename'], game['descurl'], game['url']
-                ))
-            else:
-                print("%s %s%s%s %s" % (
-                    game['title'],
-                    Style.BRIGHT, game['name'], Style.RESET_ALL,
-                    InsteadManager.size_format(int(game['size']))
-                ))
-
     def get_sorted_local_game_list(self):
         files = glob.glob('%s*' % os.path.expanduser(games_path))
 
@@ -113,18 +97,40 @@ class InsteadManager(object):
         return "%.1f%s%s" % (size, 'Yi', suffix)
 
 
+class InsteadManagerConsole():
+    def print_game_list(self, game_list: int, verbose: bool):
+        for game in game_list:
+            if verbose:
+                self.out("%s%s%s (%s) %s\n%s%s%s %s [%s]\nDescription URL: %s\nURL: %s\n" % (
+                    Style.BRIGHT, game['title'], Style.RESET_ALL,
+                    game['lang'], InsteadManager.size_format(int(game['size'])),
+                    Style.BRIGHT, game['name'], Style.RESET_ALL,
+                    game['version'],
+                    game['repository_filename'], game['descurl'], game['url']
+                ))
+            else:
+                self.out("%s %s%s%s %s" % (
+                    game['title'],
+                    Style.BRIGHT, game['name'], Style.RESET_ALL,
+                    InsteadManager.size_format(int(game['size']))
+                ))
+    def out(self, text):
+        utf8stdout = open(1, 'w', encoding='utf-8', closefd=False)
+        utf8stdout = AnsiToWin32(utf8stdout, strip=strip).stream
+        print(text, file=utf8stdout)
+
 def update_repositories_action():
-    print('Updating repositories...')
+    instead_manager_console.out('Updating repositories...')
 
     for repository in repositories:
-        print('Downloading %s ...' % repository['url'])
+        instead_manager_console.out('Downloading %s ...' % repository['url'])
         filename = '%s/repositories/%s.xml' % (os.path.dirname(os.path.realpath(__file__)), repository['name'])
         urllib.request.urlretrieve(repository['url'], filename)
 
 
 def list_action(verbose: bool):
     game_list = instead_manager.get_sorted_game_list()
-    instead_manager.print_game_list(game_list, verbose)
+    instead_manager_console.print_game_list(game_list, verbose)
 
 
 def search_action(search: str, verbose: bool):
@@ -136,7 +142,7 @@ def search_action(search: str, verbose: bool):
         if re.search(search_regex, game['title'], re.IGNORECASE) or re.search(search_regex, game['name'], re.IGNORECASE):
             filtered_game_list.append(game)
 
-    instead_manager.print_game_list(filtered_game_list, verbose)
+    instead_manager_console.print_game_list(filtered_game_list, verbose)
 
 
 def install_action(name: str, run: str, verbose: bool):
@@ -146,7 +152,7 @@ def install_action(name: str, run: str, verbose: bool):
     for game in game_list:
         if re.search(search_regex, game['title'], re.IGNORECASE) or re.search(search_regex, game['name'], re.IGNORECASE):
             # Downloading game to the temp file
-            print('Downloading %s ...' % game['url'])
+            instead_manager_console.out('Downloading %s ...' % game['url'])
             tmp_game_path = '%s/games/' % os.path.dirname(os.path.realpath(__file__))
             game_tmp_filename = '%s%s' % (tmp_game_path, 'tmp_'+game['name']+'.part')
             result = urllib.request.urlretrieve(game['url'], game_tmp_filename)
@@ -159,7 +165,11 @@ def install_action(name: str, run: str, verbose: bool):
             os.remove(game_tmp_filename)
 
             # Installing game
-            print('%s \033[1m%s\033[0m %s installing...' % (game['title'], game['name'], game['version']))
+            instead_manager_console.out('%s %s%s%s %s installing...' % (
+                game['title'],
+                Style.BRIGHT, game['name'], Style.RESET_ALL,
+                game['version']
+            ))
             # Quit after installing or run game
             quit = ' -quit'
             if run:
@@ -167,7 +177,7 @@ def install_action(name: str, run: str, verbose: bool):
             return_code = subprocess.call('instead -install %s%s' % (game_filename, quit), shell=True)
 
             if 0 == return_code:
-                print('Compete')
+                instead_manager_console.out('Compete')
 
             os.remove(game_filename)
             break
@@ -176,12 +186,12 @@ def install_action(name: str, run: str, verbose: bool):
 def local_list_action(verbose: bool):
     local_game_list = instead_manager.get_sorted_local_game_list()
     for local_game in local_game_list:
-        print(local_game['name'])
+        instead_manager_console.out(local_game['name'])
 
 
 def run_action(name: str):
     running_name = name
-    print('Running %s ...' % name)
+    instead_manager_console.out('Running %s ...' % name)
 
     # IDF check
     files = glob.glob('%s%s.idf' % (os.path.expanduser(games_path), name))
@@ -196,12 +206,12 @@ def delete_action(name: str):
     game_idf_path = os.path.expanduser(games_path) + name + '.idf'
     if os.path.exists(game_folder_path):
         shutil.rmtree(game_folder_path)
-        print("Folder '%s' has been deleted" % game_folder_path)
+        instead_manager_console.out("Folder '%s' has been deleted" % game_folder_path)
     elif os.path.exists(game_idf_path):
         os.unlink(game_idf_path)
-        print("File '%s' has been deleted" % game_idf_path)
+        instead_manager_console.out("File '%s' has been deleted" % game_idf_path)
     else:
-        print("Folder '%s' doesn't exist. Is name correct?" % game_folder_path)
+        instead_manager_console.out("Folder '%s' doesn't exist. Is name correct?" % game_folder_path)
 
 
 def is_ansi_output():
@@ -242,12 +252,13 @@ settings = json.load(jsonSettingsData)
 repositories = settings['repositories']
 games_path = settings['games_path']
 instead_manager = InsteadManager()
+instead_manager_console = InsteadManagerConsole()
 
 # Init colors (colorama)
 strip = False
 if 'off' == args.ansi_output or ('auto' == args.ansi_output and not is_ansi_output()):
     strip = True
-colorama_init(strip=strip)
+#colorama_init(strip=strip)
 
 if args.update_repositories:
     update_repositories_action()
