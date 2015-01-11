@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <game_list version="1.0">
  <game>
+  <name>fatal_things</name>
+  <title>Неизбежные вещи</title>
+  <version>0.3</version>
+  <url>http://instead-games.ru/download/instead-fatal_things-0.3.zip</url>
+  <size>7797037</size>
+  <lang>ru</lang>
+  <descurl>http://instead-games.ru/game.php?ID=195</descurl>
+ </game>
+ <game>
   <name>city_of_mists</name>
   <title>City Of Mists</title>
   <version>0.0.2</version>
@@ -8,15 +17,6 @@
   <size>15021968</size>
   <lang>ru</lang>
   <descurl>http://instead-games.ru/game.php?ID=194</descurl>
- </game>
- <game>
-  <name>fatal_things</name>
-  <title>Неизбежные вещи</title>
-  <version>0.1</version>
-  <url>http://instead-games.ru/download/instead-fatal_things-0.1.zip</url>
-  <size>7913106</size>
-  <lang>ru</lang>
-  <descurl>http://instead-games.ru/game.php?ID=195</descurl>
  </game>
  <game>
   <name>scrumble</name>

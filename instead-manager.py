@@ -16,7 +16,7 @@ import re
 import argparse
 import urllib.request
 from xml.dom import minidom
-from packages.colorama import init as coloramaInit, Style
+from packages.colorama import init as colorama_init, Style
 
 
 class InsteadManager(object):
@@ -25,95 +25,92 @@ class InsteadManager(object):
 
         game_list = []
         for file in files:
-            game_list.extend(get_games_from_file(file))
+            game_list.extend(self.get_games_from_file(file))
 
         game_list.sort(key=lambda game: (game['title']))
 
         return game_list
 
-def get_games_from_file(file_path):
-    xml_doc = minidom.parse(file_path)
-    xml_game_list = xml_doc.getElementsByTagName('game')
+    def get_games_from_file(self, file_path):
+        xml_doc = minidom.parse(file_path)
+        xml_game_list = xml_doc.getElementsByTagName('game')
 
-    repository_filename = os.path.basename(file_path)
+        repository_filename = os.path.basename(file_path)
 
-    game_list_unsorted = []
-    for game in xml_game_list:
-        title = game.getElementsByTagName("title")[0]
-        name = game.getElementsByTagName("name")[0]
-        version = game.getElementsByTagName("version")[0]
-        lang = game.getElementsByTagName("lang")[0]
-        url = game.getElementsByTagName("url")[0]
-        size = game.getElementsByTagName("size")[0]
-        descurl = game.getElementsByTagName("descurl")[0]
-        game_list_unsorted.append({
-            'title': title.firstChild.data,
-            'name': name.firstChild.data,
-            'version': version.firstChild.data,
-            'lang': lang.firstChild.data,
-            'url': url.firstChild.data,
-            'size': size.firstChild.data,
-            'descurl': descurl.firstChild.data,
-            'repository_filename': repository_filename,
-        })
+        game_list_unsorted = []
+        for game in xml_game_list:
+            title = game.getElementsByTagName("title")[0]
+            name = game.getElementsByTagName("name")[0]
+            version = game.getElementsByTagName("version")[0]
+            lang = game.getElementsByTagName("lang")[0]
+            url = game.getElementsByTagName("url")[0]
+            size = game.getElementsByTagName("size")[0]
+            descurl = game.getElementsByTagName("descurl")[0]
+            game_list_unsorted.append({
+                'title': title.firstChild.data,
+                'name': name.firstChild.data,
+                'version': version.firstChild.data,
+                'lang': lang.firstChild.data,
+                'url': url.firstChild.data,
+                'size': size.firstChild.data,
+                'descurl': descurl.firstChild.data,
+                'repository_filename': repository_filename,
+            })
 
-    return game_list_unsorted
+        return game_list_unsorted
 
+    def print_game_list(self, game_list: int, verbose: bool):
+        for game in game_list:
+            if verbose:
+                print("%s%s%s (%s) %s\n%s%s%s %s [%s]\nDescription URL: %s\nURL: %s\n" % (
+                    Style.BRIGHT, game['title'], Style.RESET_ALL,
+                    game['lang'], InsteadManager.size_format(int(game['size'])),
+                    Style.BRIGHT, game['name'], Style.RESET_ALL,
+                    game['version'],
+                    game['repository_filename'], game['descurl'], game['url']
+                ))
+            else:
+                print("%s %s%s%s %s" % (
+                    game['title'],
+                    Style.BRIGHT, game['name'], Style.RESET_ALL,
+                    InsteadManager.size_format(int(game['size']))
+                ))
 
-def print_game_list(game_list: int, verbose: bool):
-    for game in game_list:
-        if verbose:
-            print("%s%s%s (%s) %s\n%s%s%s %s [%s]\nDescription URL: %s\nURL: %s\n" % (
-                Style.BRIGHT, game['title'], Style.RESET_ALL,
-                game['lang'], size_format(int(game['size'])),
-                Style.BRIGHT, game['name'], Style.RESET_ALL,
-                game['version'],
-                game['repository_filename'], game['descurl'], game['url']
-            ))
-        else:
-            print("%s %s%s%s %s" % (
-                game['title'],
-                Style.BRIGHT, game['name'], Style.RESET_ALL,
-                size_format(int(game['size']))
-            ))
+    def get_sorted_local_game_list(self):
+        files = glob.glob('%s*' % os.path.expanduser(games_path))
 
+        local_game_list = []
+        for file in files:
+            game_name = os.path.basename(file)
+            match = re.search('(.*)\.idf$', game_name, re.IGNORECASE)
+            if match:
+                game_name = match.groups()[0]
+            local_game_list.append({'name': game_name})
 
-def get_sorted_local_game_list():
-    files = glob.glob('%s*' % os.path.expanduser(games_path))
+        local_game_list.sort(key=lambda game: (game['name']))
 
-    local_game_list = []
-    for file in files:
-        game_name = os.path.basename(file)
-        match = re.search('(.*)\.idf$', game_name, re.IGNORECASE)
-        if match:
-            game_name = match.groups()[0]
-        local_game_list.append({'name': game_name})
+        return local_game_list
 
-    local_game_list.sort(key=lambda game: (game['name']))
+    def get_response_filename(self, http_message, url):
+        filename = None
 
-    return local_game_list
+        content_disposition = http_message.get('Content-Disposition')
+        if content_disposition:
+            filename = re.findall("filename=(\S+)", content_disposition)[0].strip(' \t\n\r"\'')
 
+        if not filename:
+            filename = url.split('/')[-1]
 
-def size_format(size):
-    suffix = 'B'
-    for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
-        if abs(size) < 1024.0:
-            return "%3.1f%s%s" % (size, unit, suffix)
-        size /= 1024.0
-    return "%.1f%s%s" % (size, 'Yi', suffix)
+        return filename
 
-
-def get_response_filename(http_message, url):
-    filename = None
-
-    content_disposition = http_message.get('Content-Disposition')
-    if content_disposition:
-        filename = re.findall("filename=(\S+)", content_disposition)[0].strip(' \t\n\r"\'')
-
-    if not filename:
-        filename = url.split('/')[-1]
-
-    return filename
+    @staticmethod
+    def size_format(size):
+        suffix = 'B'
+        for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
+            if abs(size) < 1024.0:
+                return "%3.1f%s%s" % (size, unit, suffix)
+            size /= 1024.0
+        return "%.1f%s%s" % (size, 'Yi', suffix)
 
 
 def update_repositories_action():
@@ -127,7 +124,7 @@ def update_repositories_action():
 
 def list_action(verbose: bool):
     game_list = instead_manager.get_sorted_game_list()
-    print_game_list(game_list, verbose)
+    instead_manager.print_game_list(game_list, verbose)
 
 
 def search_action(search: str, verbose: bool):
@@ -139,7 +136,7 @@ def search_action(search: str, verbose: bool):
         if re.search(search_regex, game['title'], re.IGNORECASE) or re.search(search_regex, game['name'], re.IGNORECASE):
             filtered_game_list.append(game)
 
-    print_game_list(filtered_game_list, verbose)
+    instead_manager.print_game_list(filtered_game_list, verbose)
 
 
 def install_action(name: str, run: str, verbose: bool):
@@ -154,7 +151,7 @@ def install_action(name: str, run: str, verbose: bool):
             game_tmp_filename = '%s%s' % (tmp_game_path, 'tmp_'+game['name']+'.part')
             result = urllib.request.urlretrieve(game['url'], game_tmp_filename)
 
-            base_game_filename = get_response_filename(result[1], game['url']);
+            base_game_filename = instead_manager.get_response_filename(result[1], game['url']);
             game_filename = '%s%s' % (tmp_game_path, base_game_filename)
 
             # Copying game to the file with normal name
@@ -177,7 +174,7 @@ def install_action(name: str, run: str, verbose: bool):
 
 
 def local_list_action(verbose: bool):
-    local_game_list = get_sorted_local_game_list()
+    local_game_list = instead_manager.get_sorted_local_game_list()
     for local_game in local_game_list:
         print(local_game['name'])
 
@@ -250,7 +247,7 @@ instead_manager = InsteadManager()
 strip = False
 if 'off' == args.ansi_output or ('auto' == args.ansi_output and not is_ansi_output()):
     strip = True
-coloramaInit(strip=strip)
+colorama_init(strip=strip)
 
 if args.update_repositories:
     update_repositories_action()
