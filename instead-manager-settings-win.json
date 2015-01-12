@@ -4,6 +4,6 @@
         {"name": "instead-games", "url": "http://instead-games.ru/xml.php"},
         {"name": "instead-games-sandbox", "url": "http://instead-games.ru/xml2.php"}
     ],
-    "games_path": "~/.instead/games/",
-    "interpreter_command": "instead"
+    "games_path": "~\\Local Settings\\Application Data\\instead\\games\\",
+    "interpreter_command": "\"C:\\Program Files\\Games\\Instead\\sdl-instead.exe\""
 }

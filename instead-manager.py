@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 __title__      = 'instead-manager'
-__version__    = "0.4"
+__version__    = "0.5"
 __author__     = "Evgeniy Efremov"
 __email__      = "jhekasoft@gmail.com"
 
@@ -96,6 +96,10 @@ class InsteadManager(object):
             size /= 1024.0
         return "%.1f%s%s" % (size, 'Yi', suffix)
 
+    @staticmethod
+    def is_win():
+        return any(platform.win32_ver())
+
 
 class InsteadManagerConsole():
     def print_game_list(self, game_list: int, verbose: bool):
@@ -124,7 +128,7 @@ def update_repositories_action():
 
     for repository in repositories:
         instead_manager_console.out('Downloading %s ...' % repository['url'])
-        filename = '%s/repositories/%s.xml' % (os.path.dirname(os.path.realpath(__file__)), repository['name'])
+        filename = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'repositories', repository['name']+'.xml')
         urllib.request.urlretrieve(repository['url'], filename)
 
 
@@ -153,8 +157,8 @@ def install_action(name: str, run: str, verbose: bool):
         if re.search(search_regex, game['title'], re.IGNORECASE) or re.search(search_regex, game['name'], re.IGNORECASE):
             # Downloading game to the temp file
             instead_manager_console.out('Downloading %s ...' % game['url'])
-            tmp_game_path = '%s/games/' % os.path.dirname(os.path.realpath(__file__))
-            game_tmp_filename = '%s%s' % (tmp_game_path, 'tmp_'+game['name']+'.part')
+            tmp_game_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'games')
+            game_tmp_filename = os.path.join(tmp_game_path, 'tmp_'+game['name']+'.part')
             result = urllib.request.urlretrieve(game['url'], game_tmp_filename)
 
             base_game_filename = instead_manager.get_response_filename(result[1], game['url']);
@@ -174,7 +178,8 @@ def install_action(name: str, run: str, verbose: bool):
             quit = ' -quit'
             if run:
                 quit = ''
-            return_code = subprocess.call('instead -install %s%s' % (game_filename, quit), shell=True)
+            print('%s -install "%s"%s' % (interpreter_command, game_filename, quit))
+            return_code = subprocess.call('%s -install "%s"%s' % (interpreter_command, game_filename, quit), shell=True)
 
             if 0 == return_code:
                 instead_manager_console.out('Compete')
@@ -198,7 +203,10 @@ def run_action(name: str):
     if len(files) > 0:
         running_name = running_name+'.idf'
 
-    subprocess.Popen('instead -game %s &>/dev/null' % running_name, shell=True)
+    postfix = ''
+    if not InsteadManager.is_win():
+        postfix = ' &>/dev/null'
+    subprocess.Popen('%s -game "%s"%s' % (interpreter_command, running_name, postfix), shell=True)
 
 
 def delete_action(name: str):
@@ -247,12 +255,18 @@ parser.add_argument('-ansi', '--ansi-output', choices=['on', 'off', 'auto'], nar
 args = parser.parse_args()
 
 # Loading config from JSON-file
-jsonSettingsData = open(os.path.dirname(os.path.realpath(__file__))+'/instead-manager-settings.json')
+config_file = 'instead-manager-settings.json'
+if InsteadManager.is_win():
+    config_file = 'instead-manager-settings-win.json'
+
+jsonSettingsData = open(os.path.join(os.path.dirname(os.path.realpath(__file__)), config_file))
 settings = json.load(jsonSettingsData)
 repositories = settings['repositories']
 games_path = settings['games_path']
+interpreter_command = settings['interpreter_command']
 instead_manager = InsteadManager()
 instead_manager_console = InsteadManagerConsole()
+
 
 # Init colors (colorama)
 strip = False
