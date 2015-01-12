@@ -114,10 +114,10 @@ class InsteadManagerConsole():
                     Style.BRIGHT, game['name'], Style.RESET_ALL,
                     InsteadManager.size_format(int(game['size']))
                 ))
+
     def out(self, text):
-        utf8stdout = open(1, 'w', encoding='utf-8', closefd=False)
-        utf8stdout = AnsiToWin32(utf8stdout, strip=strip).stream
-        print(text, file=utf8stdout)
+        print(text.encode(sys.stdout.encoding, errors='replace').decode(sys.stdout.encoding))
+
 
 def update_repositories_action():
     instead_manager_console.out('Updating repositories...')
@@ -258,7 +258,7 @@ instead_manager_console = InsteadManagerConsole()
 strip = False
 if 'off' == args.ansi_output or ('auto' == args.ansi_output and not is_ansi_output()):
     strip = True
-#colorama_init(strip=strip)
+colorama_init(strip=strip)
 
 if args.update_repositories:
     update_repositories_action()
