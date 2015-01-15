@@ -9,6 +9,7 @@ import subprocess
 import urllib.request
 from packages.colorama import Style
 
+
 class InsteadManagerConsole(object):
 
     def __init__(self, instead_manager):
@@ -43,13 +44,26 @@ class InsteadManagerConsole(object):
 
             return False
 
+    def download_status_hook(self, blocknum, blocksize, totalsize):
+        loadedsize = blocknum * blocksize
+        if loadedsize > totalsize:
+            loadedsize = totalsize
+        if totalsize > 0:
+            percent = loadedsize * 1e2 / totalsize
+            s = "\r%5.1f%% %s / %s     " % (
+                percent, self.instead_manager.size_format(loadedsize), self.instead_manager.size_format(totalsize))
+            sys.stderr.write(s)
+            if loadedsize >= totalsize:
+                # The end
+                sys.stderr.write("\n")
+
     def update_repositories_action(self):
         self.out('Updating repositories...')
 
         for repository in self.instead_manager.repositories:
             self.out('Downloading %s ...' % repository['url'])
             filename = os.path.join(self.instead_manager.base_path, 'repositories', repository['name']+'.xml')
-            urllib.request.urlretrieve(repository['url'], filename)
+            urllib.request.urlretrieve(repository['url'], filename, self.download_status_hook)
 
     def list_action(self, verbose: bool):
         game_list = self.instead_manager.get_sorted_game_list()
@@ -74,9 +88,9 @@ class InsteadManagerConsole(object):
             if re.search(search_regex, game['title'], re.IGNORECASE) or re.search(search_regex, game['name'], re.IGNORECASE):
                 # Downloading game to the temp file
                 self.out('Downloading %s ...' % game['url'])
-                tmp_game_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'games')
+                tmp_game_path = os.path.join(self.instead_manager.base_path, 'games')
                 game_tmp_filename = os.path.join(tmp_game_path, 'tmp_'+game['name']+'.part')
-                result = urllib.request.urlretrieve(game['url'], game_tmp_filename)
+                result = urllib.request.urlretrieve(game['url'], game_tmp_filename, self.download_status_hook)
 
                 base_game_filename = self.instead_manager.get_response_filename(result[1], game['url']);
                 game_filename = '%s%s' % (tmp_game_path, base_game_filename)
