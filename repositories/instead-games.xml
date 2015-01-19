@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <game_list version="1.0">
  <game>
+  <name>return_of_red_hood</name>
+  <title>Return of Red Hood</title>
+  <version>1.04</version>
+  <url>http://instead-games.ru/download/instead-return_of_red_hood-1.04.zip</url>
+  <size>101782567</size>
+  <lang>ru</lang>
+  <descurl>http://instead-games.ru/game.php?ID=189</descurl>
+ </game>
+ <game>
   <name>new_year</name>
   <title>Новогодняя сказка</title>
   <version>1.1a</version>
@@ -26,15 +35,6 @@
   <size>15622244</size>
   <lang>ru</lang>
   <descurl>http://instead-games.ru/game.php?ID=120</descurl>
- </game>
- <game>
-  <name>return_of_red_hood</name>
-  <title>Return of Red Hood</title>
-  <version>1.04</version>
-  <url>http://instead-games.ru/download/instead-return_of_red_hood-1.04.zip</url>
-  <size>12589292</size>
-  <lang>ru</lang>
-  <descurl>http://instead-games.ru/game.php?ID=189</descurl>
  </game>
  <game>
   <name>signal</name>
