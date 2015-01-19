@@ -2,13 +2,13 @@ __author__ = "Evgeniy Efremov aka jhekasoft"
 __email__ = "jhekasoft@gmail.com"
 
 import os
-import sys
 import platform
 import glob
+import shutil
 import subprocess
 from xml.dom import minidom
 import re
-from packages.colorama import Style
+import urllib.request
 
 
 class InsteadManager(object):
@@ -73,6 +73,60 @@ class InsteadManager(object):
 
         return local_game_list
 
+    def filter_games(self, game_list, keyword: str):
+        filtered_game_list = []
+        search_regex = '.*%s.*' % re.escape(keyword)
+        for game in game_list:
+            if re.search(search_regex, game['title'], re.IGNORECASE) or re.search(search_regex, game['name'], re.IGNORECASE):
+                filtered_game_list.append(game)
+
+        return filtered_game_list
+
+    def update_repositories(self, download_status_callback=None, begin_repository_downloading_callback=None):
+        for repository in self.repositories:
+            if begin_repository_downloading_callback:
+                begin_repository_downloading_callback(repository)
+
+            filename = os.path.join(self.base_path, 'repositories', repository['name']+'.xml')
+            urllib.request.urlretrieve(repository['url'], filename, download_status_callback)
+
+        return True
+
+    def install_game(self, game, run: bool, download_status_callback=None,
+                     begin_downloading_callback=None, begin_installation_callback=None):
+
+        # Downloading game to the temp file
+        if begin_downloading_callback:
+            begin_downloading_callback(game)
+
+        tmp_game_path = os.path.join(self.base_path, 'games')
+        game_tmp_filename = os.path.join(tmp_game_path, 'tmp_'+game['name']+'.part')
+        result = urllib.request.urlretrieve(game['url'], game_tmp_filename, download_status_callback)
+
+        base_game_filename = self.get_response_filename(result[1], game['url'])
+        game_filename = '%s%s' % (tmp_game_path, base_game_filename)
+
+        # Copying game to the file with normal name
+        shutil.copy(game_tmp_filename, game_filename)
+        os.remove(game_tmp_filename)
+
+        # Game installation
+        if begin_installation_callback:
+            begin_installation_callback(game)
+
+        quit_instead = ' -quit'
+        if run:
+            quit_instead = ''
+        return_code = subprocess.call(
+            '%s -install "%s"%s' % (self.interpreter_command, game_filename, quit_instead), shell=True)
+
+        os.remove(game_filename)
+
+        if 0 != return_code:
+            return False
+
+        return True
+
     def get_response_filename(self, http_message, url):
         filename = None
 
@@ -97,6 +151,22 @@ class InsteadManager(object):
         if not InsteadManager.is_win():
             postfix = ' &>/dev/null'
         subprocess.Popen('%s -game "%s"%s' % (self.interpreter_command, running_name, postfix), shell=True)
+        return True
+
+    def delete_game(self, name):
+        game_folder_path = os.path.expanduser(self.games_path) + name
+        game_idf_path = os.path.expanduser(self.games_path) + name + '.idf'
+        if os.path.exists(game_folder_path):
+            shutil.rmtree(game_folder_path)
+            return True
+            # self.out("Folder '%s' has been deleted" % game_folder_path)
+        elif os.path.exists(game_idf_path):
+            os.unlink(game_idf_path)
+            return True
+            # self.out("File '%s' has been deleted" % game_idf_path)
+
+        return False
+        # self.out("Folder '%s' doesn't exist. Is name correct?" % game_folder_path)
 
     @staticmethod
     def size_format(size):

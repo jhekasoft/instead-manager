@@ -2,71 +2,213 @@
 # -*- coding: UTF-8 -*-
 
 __title__ = 'instead-manager'
-__version__ = "0.6"
+__version__ = "0.7"
 __author__ = "Evgeniy Efremov aka jhekasoft"
 __email__ = "jhekasoft@gmail.com"
 
 import os
+import sys
+import errno
+import platform
 import json
 import argparse
-from packages.colorama import init as colorama_init
-from instead_utils.manager import InsteadManager
-from instead_utils.console import InsteadManagerConsole
 
-parser = argparse.ArgumentParser(description='%s (INSTEAD games manager) %s' % (__title__, __version__))
-parser.add_argument('-u', '--update-repositories', action='store_true',
-                    help='update repositories')
-parser.add_argument('-l', '--list', action='store_true',
-                    help='list games')
-parser.add_argument('-s', '--search', nargs='?', type=str,
-                    help='search games')
-parser.add_argument('-i', '--install', nargs='?', type=str,
-                    help='install game by name or title')
-parser.add_argument('-r', '--run', nargs='?', type=str, const='const',
-                    help='run game')
-parser.add_argument('-ll', '--local-list', action='store_true',
-                    help='list installed games')
-parser.add_argument('-d', '--delete', nargs='?', type=str,
-                    help='delete installed game')
-parser.add_argument('-v', '--verbose', action='store_true',
-                    help='detailed print')
-parser.add_argument('-ansi', '--ansi-output', choices=['on', 'off', 'auto'], nargs='?', default='auto', const='auto',
-                    help='ANSI escaped chars output')
-
-args = parser.parse_args()
-
-# Loading config from JSON-file
-config_file = 'instead-manager-settings.json'
-if InsteadManager.is_win():
-    config_file = 'instead-manager-settings-win.json'
-
-jsonSettingsData = open(os.path.join(os.path.dirname(os.path.realpath(__file__)), config_file))
-settings = json.load(jsonSettingsData)
-repositories = settings['repositories']
-games_path = settings['games_path']
-interpreter_command = settings['interpreter_command']
-instead_manager = InsteadManager(games_path, os.path.dirname(os.path.realpath(__file__)), interpreter_command, repositories)
-instead_manager_console = InsteadManagerConsole(instead_manager)
+from packages.colorama import init as colorama_init, Style, Fore
+from manager import InsteadManager
 
 
-# Init colors (colorama)
-strip = False
-if 'off' == args.ansi_output or ('auto' == args.ansi_output and not instead_manager_console.is_ansi_output()):
-    strip = True
-colorama_init(strip=strip)
+class InsteadManagerConsole(object):
 
-if args.update_repositories:
-    instead_manager_console.update_repositories_action()
+    def __init__(self, instead_manager):
+        self.instead_manager = instead_manager
 
-if args.list:
-    instead_manager_console.list_action(args.verbose)
-elif args.search:
-    instead_manager_console.search_action(args.search, args.verbose)
-elif args.install:
-    instead_manager_console.install_action(args.install, args.run, args.verbose)
-elif args.local_list:
-    instead_manager_console.local_list_action(args.verbose)
-elif args.run:
-    instead_manager_console.run_action(args.run)
-elif args.delete:
-    instead_manager_console.delete_action(args.delete)
+    def out(self, text):
+        print(text.encode(sys.stdout.encoding, errors='replace').decode(sys.stdout.encoding))
+
+    def out_success(self, text, exit=False):
+        self.out(Fore.GREEN + text + Fore.RESET)
+
+        if exit:
+            sys.exit()
+
+    def out_fail(self, text, exit=False):
+        self.out(Fore.RED + text + Fore.RESET)
+
+        if exit:
+            sys.exit(errno.EFAULT)
+
+    def print_game_list(self, game_list: int, verbose: bool):
+        for game in game_list:
+            if verbose:
+                self.out("%s%s%s (%s) %s\n%s%s%s %s [%s]\nDescription URL: %s\nURL: %s\n" % (
+                    Style.BRIGHT + Fore.YELLOW, game['title'], Fore.RESET + Style.RESET_ALL,
+                    game['lang'], self.instead_manager.size_format(int(game['size'])),
+                    Style.BRIGHT, game['name'], Style.RESET_ALL,
+                    game['version'],
+                    game['repository_filename'], game['descurl'], game['url']
+                ))
+            else:
+                self.out("%s%s%s %s%s%s %s" % (
+                    Style.BRIGHT + Fore.YELLOW, game['title'], Fore.RESET + Style.RESET_ALL,
+                    Style.BRIGHT, game['name'], Style.RESET_ALL,
+                    self.instead_manager.size_format(int(game['size']))
+                ))
+
+    def is_ansi_output(self):
+        if (hasattr(sys.stdout, "isatty") and sys.stdout.isatty()) or ('TERM' in os.environ and os.environ['TERM']=='ANSI'):
+            if platform.system()=='Windows' and not ('TERM' in os.environ and os.environ['TERM']=='ANSI'):
+                return False
+            else:
+                return True
+
+            return False
+
+    def download_status_callback(self, blocknum, blocksize, totalsize):
+        loadedsize = blocknum * blocksize
+        if loadedsize > totalsize:
+            loadedsize = totalsize
+        if totalsize > 0:
+            percent = loadedsize * 1e2 / totalsize
+            s = "\r%5.1f%% %s / %s     " % (
+                percent, self.instead_manager.size_format(loadedsize), self.instead_manager.size_format(totalsize))
+            sys.stderr.write(s)
+            if loadedsize >= totalsize:
+                # The end
+                sys.stderr.write("\n")
+
+    def begin_downloading_callback(self, game):
+        self.out('Downloading %s ...' % game['url'])
+
+    def begin_installation_callback(self, game):
+        self.out('%s %s%s%s %s installing...' % (
+            game['title'],
+            Style.BRIGHT, game['name'], Style.RESET_ALL,
+            game['version']
+        ))
+
+    def update_repositories_action(self):
+        self.instead_manager.\
+            update_repositories(download_status_callback=self.download_status_callback,
+                                begin_repository_downloading_callback=self.begin_repository_downloading_callback)
+
+    def begin_repository_downloading_callback(self, repository):
+        self.out('Downloading %s...' % (Style.BRIGHT + repository['url'] + Style.RESET_ALL))
+
+    def list_action(self, verbose: bool):
+        game_list = self.instead_manager.get_sorted_game_list()
+        self.print_game_list(game_list, verbose)
+
+    def search_action(self, search: str, verbose: bool):
+        game_list = self.instead_manager.get_sorted_game_list()
+        filtered_game_list = self.instead_manager.filter_games(game_list, search)
+
+        self.print_game_list(filtered_game_list, verbose)
+
+    def install_action(self, name: str, run: str, verbose: bool):
+        game_list = self.instead_manager.get_sorted_game_list()
+        filtered_game_list = self.instead_manager.filter_games(game_list, name)
+
+        found = bool(filtered_game_list)
+        for game in filtered_game_list:
+            installed =\
+                self.instead_manager.install_game(game, run,
+                                                  download_status_callback=self.download_status_callback,
+                                                  begin_downloading_callback=self.begin_downloading_callback,
+                                                  begin_installation_callback=self.begin_installation_callback)
+
+            if installed:
+                self.out_success('Compete', exit=True)
+
+            break
+
+        if not found:
+            self.out_fail('Game has not found', exit=True)
+
+        self.out_fail('Game has not been installed', exit=True)
+
+    def local_list_action(self, verbose: bool):
+        local_game_list = self.instead_manager.get_sorted_local_game_list()
+        for local_game in local_game_list:
+            self.out(Style.BRIGHT + local_game['name'] + Style.RESET_ALL)
+
+    def run_action(self, name: str):
+        self.out('Running %s ...' % name)
+
+        run = self.instead_manager.run_game(name)
+
+        if not run:
+            self.out_fail("Game hasn't run", exit=True)
+
+        self.out_success("Game has run")
+
+    def delete_action(self, name: str):
+        deleted = self.instead_manager.delete_game(name)
+        if not deleted:
+            self.out_fail("Game hasn't been deleted", exit=True)
+
+        self.out_success("Game has been deleted")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='%s (INSTEAD games manager) %s' % (__title__, __version__))
+    parser.add_argument('-u', '--update-repositories', action='store_true',
+                        help='update repositories')
+    parser.add_argument('-l', '--list', action='store_true',
+                        help='list games')
+    parser.add_argument('-s', '--search', nargs='?', type=str,
+                        help='search games')
+    parser.add_argument('-i', '--install', nargs='?', type=str,
+                        help='install game by name or title')
+    parser.add_argument('-r', '--run', nargs='?', type=str, const='const',
+                        help='run game')
+    parser.add_argument('-ll', '--local-list', action='store_true',
+                        help='list installed games')
+    parser.add_argument('-d', '--delete', nargs='?', type=str,
+                        help='delete installed game')
+    parser.add_argument('-v', '--verbose', action='store_true',
+                        help='detailed print')
+    parser.add_argument('-ansi', '--ansi-output', choices=['on', 'off', 'auto'], nargs='?', default='auto', const='auto',
+                        help='ANSI escaped chars output')
+
+    # Print help if no arguments
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
+    args = parser.parse_args()
+
+    # Loading config from JSON-file
+    config_file = 'instead-manager-settings.json'
+    if InsteadManager.is_win():
+        config_file = 'instead-manager-settings-win.json'
+
+    jsonSettingsData = open(os.path.join(os.path.dirname(os.path.realpath(__file__)), config_file))
+    settings = json.load(jsonSettingsData)
+    repositories = settings['repositories']
+    games_path = settings['games_path']
+    interpreter_command = settings['interpreter_command']
+    instead_manager = InsteadManager(games_path, os.path.dirname(os.path.realpath(__file__)), interpreter_command, repositories)
+    instead_manager_console = InsteadManagerConsole(instead_manager)
+
+
+    # Init colors (colorama)
+    strip = False
+    if 'off' == args.ansi_output or ('auto' == args.ansi_output and not instead_manager_console.is_ansi_output()):
+        strip = True
+    colorama_init(strip=strip)
+
+    if args.update_repositories:
+        instead_manager_console.update_repositories_action()
+
+    if args.list:
+        instead_manager_console.list_action(args.verbose)
+    elif args.search:
+        instead_manager_console.search_action(args.search, args.verbose)
+    elif args.install:
+        instead_manager_console.install_action(args.install, args.run, args.verbose)
+    elif args.local_list:
+        instead_manager_console.local_list_action(args.verbose)
+    elif args.run:
+        instead_manager_console.run_action(args.run)
+    elif args.delete:
+        instead_manager_console.delete_action(args.delete)
