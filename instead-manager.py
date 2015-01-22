@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 __title__ = 'instead-manager'
-__version__ = "0.7"
+__version__ = "0.8"
 __author__ = "Evgeniy Efremov aka jhekasoft"
 __email__ = "jhekasoft@gmail.com"
 
@@ -10,7 +10,6 @@ import os
 import sys
 import errno
 import platform
-import json
 import argparse
 
 from packages.colorama import init as colorama_init, Style, Fore
@@ -177,17 +176,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # Loading config from JSON-file
-    config_file = 'instead-manager-settings.json'
-    if InsteadManager.is_win():
-        config_file = 'instead-manager-settings-win.json'
-
-    jsonSettingsData = open(os.path.join(os.path.dirname(os.path.realpath(__file__)), config_file))
-    settings = json.load(jsonSettingsData)
-    repositories = settings['repositories']
-    games_path = settings['games_path']
-    interpreter_command = settings['interpreter_command']
-    instead_manager = InsteadManager(games_path, os.path.dirname(os.path.realpath(__file__)), interpreter_command, repositories)
+    instead_manager = InsteadManager(os.path.dirname(os.path.realpath(__file__)))
     instead_manager_console = InsteadManagerConsole(instead_manager)
 
 

@@ -9,15 +9,34 @@ import subprocess
 from xml.dom import minidom
 import re
 import urllib.request
+import json
 
 
 class InsteadManager(object):
 
-    def __init__(self, games_path, base_path, interpreter_command, repositories):
-        self.games_path = games_path
+    def __init__(self, base_path, games_path=None, interpreter_command=None, repositories=None):
         self.base_path = base_path
-        self.interpreter_command = interpreter_command
-        self.repositories = repositories
+
+        if None in (games_path, interpreter_command, repositories):
+            settings = self.read_settings()
+
+        self.games_path = games_path if games_path else settings['games_path']
+        self.interpreter_command = interpreter_command if interpreter_command else settings['interpreter_command']
+        self.repositories = repositories if repositories else settings['repositories']
+
+    def read_settings(self):
+        """
+        Loading config from JSON-file
+
+        :return:
+        """
+        config_file = 'instead-manager-settings.json'
+        if self.is_win():
+            config_file = 'instead-manager-settings-win.json'
+
+        json_settings_data = open(os.path.join(self.base_path, config_file))
+
+        return json.load(json_settings_data)
 
     def get_sorted_game_list(self):
         files = glob.glob('%s/repositories/*.xml' % self.base_path)
