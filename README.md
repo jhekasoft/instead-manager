@@ -52,4 +52,18 @@ C:\Python34\python.exe instead-manager.py -h
 GUI
 ---
 
-It's not implemented yet. :)
+`ikinter` implementation.
+
+![alt text](https://github.com/jhekasoft/instead-manager/raw/master/docs/images/instead-manager-tk.png "instead-manager tkinter")
+
+UNIX systems:
+
+```
+python3 instead-manager-tk.py
+```
+
+Windows systems:
+
+```
+C:\Python34\python.exe instead-manager-tk.py
+```
