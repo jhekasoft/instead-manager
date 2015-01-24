@@ -111,8 +111,9 @@ class InsteadManager(object):
 
         return True
 
-    def install_game(self, game, run: bool, download_status_callback=None,
-                     begin_downloading_callback=None, begin_installation_callback=None):
+    def install_game(self, game, run=False, download_status_callback=None,
+                     begin_downloading_callback=None, begin_installation_callback=None,
+                     end_installing=None):
 
         # Downloading game to the temp file
         if begin_downloading_callback:
@@ -141,10 +142,14 @@ class InsteadManager(object):
 
         os.remove(game_filename)
 
+        result = True
         if 0 != return_code:
-            return False
+            result = False
 
-        return True
+        if end_installing:
+            end_installing(game, end_installing)
+
+        return result
 
     def get_response_filename(self, http_message, url):
         filename = None
@@ -167,7 +172,7 @@ class InsteadManager(object):
             running_name = running_name+'.idf'
 
         postfix = ''
-        if not InsteadManager.is_win():
+        if not self.is_win():
             postfix = ' &>/dev/null'
         subprocess.Popen('%s -game "%s"%s' % (self.interpreter_command, running_name, postfix), shell=True)
         return True
