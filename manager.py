@@ -192,6 +192,19 @@ class InsteadManager(object):
         return False
         # self.out("Folder '%s' doesn't exist. Is name correct?" % game_folder_path)
 
+    def check_instead_interpreter_with_info(self):
+        try:
+            info = subprocess.check_output([self.interpreter_command, '-version'])
+        except Exception as e:
+            return False, e
+
+        if info:
+            return True, info.decode('ascii').strip()
+
+    def check_instead_interpreter(self):
+        check, info = self.check_instead_interpreter_with_info()
+        return check
+
     @staticmethod
     def size_format(size):
         suffix = 'B'

@@ -147,6 +147,13 @@ class InsteadManagerConsole(object):
 
         self.out_success("Game has been deleted")
 
+    def check_instead_interpreter_action(self, verbose: bool):
+        check, info = self.instead_manager.check_instead_interpreter_with_info()
+        if check:
+            self.out_success("INSTEAD interpreter is correctly configured. INSTEAD version: %s" % info, exit=True)
+
+        self.out_fail("INSTEAD interpreter is not correctly configured.\n%s" % info, exit=True)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='%s (INSTEAD games manager) %s' % (__title__, __version__))
@@ -164,6 +171,8 @@ if __name__ == "__main__":
                         help='list installed games')
     parser.add_argument('-d', '--delete', nargs='?', type=str,
                         help='delete installed game')
+    parser.add_argument('-ci', '--check-instead', action='store_true',
+                        help='checks INSTEAD interpreter')
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='detailed print')
     parser.add_argument('-ansi', '--ansi-output', choices=['on', 'off', 'auto'], nargs='?', default='auto', const='auto',
@@ -189,7 +198,9 @@ if __name__ == "__main__":
     if args.update_repositories:
         instead_manager_console.update_repositories_action()
 
-    if args.list:
+    if args.check_instead:
+            instead_manager_console.check_instead_interpreter_action(args.verbose)
+    elif args.list:
         instead_manager_console.list_action(args.verbose)
     elif args.search:
         instead_manager_console.search_action(args.search, args.verbose)
