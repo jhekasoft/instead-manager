@@ -13,7 +13,7 @@ import platform
 import argparse
 
 from packages.colorama import init as colorama_init, Style, Fore
-from manager import InsteadManager
+from manager import InsteadManager, WinInsteadManager, InsteadManagerHelper
 
 
 class InsteadManagerConsole(object):
@@ -185,7 +185,13 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    instead_manager = InsteadManager(os.path.dirname(os.path.realpath(__file__)))
+    base_path = os.path.dirname(os.path.realpath(__file__))
+
+    if InsteadManagerHelper.is_win():
+        instead_manager = WinInsteadManager(base_path)
+    else:
+        instead_manager = InsteadManager(base_path)
+
     instead_manager_console = InsteadManagerConsole(instead_manager)
 
 

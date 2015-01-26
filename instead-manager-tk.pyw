@@ -10,7 +10,7 @@ import os
 from threading import Thread
 from tkinter import *
 import tkinter.ttk as ttk
-from manager import InsteadManager
+from manager import InsteadManager, WinInsteadManager, InsteadManagerHelper
 
 
 class InsteadManagerTk(object):
@@ -115,11 +115,24 @@ class InsteadManagerTk(object):
 
 
 if __name__ == "__main__":
-    instead_manager = InsteadManager(os.path.dirname(os.path.realpath(__file__)))
+    base_path = os.path.dirname(os.path.realpath(__file__))
+
+    if InsteadManagerHelper.is_win():
+        instead_manager = WinInsteadManager(base_path)
+    else:
+        instead_manager = InsteadManager(base_path)
+
     instead_manager_tk = InsteadManagerTk(instead_manager)
 
-    root = Tk()
-    root.wm_title("Instead Manager " + __version__)
+    root = Tk(className='INSTEAD Manager')
+    # Window title
+    root.title("INSTEAD Manager " + __version__)
+    # Window icon
+    root.iconphoto(True, PhotoImage(file=os.path.join(base_path, 'resources', 'images', 'logo.png')))
+
+    # style = ttk.Style()
+    # print(style.theme_names())
+    # style.theme_use('clam')
 
     treeRepositoryList = ttk.Treeview(root, columns=('title', 'lang', 'version', 'size', 'repository'), show='headings')
     treeRepositoryList.column("title", width=350)
@@ -138,10 +151,6 @@ if __name__ == "__main__":
 
     buttonUpdateRepository = ttk.Button(root, text="Update repositories", command=instead_manager_tk.update_and_list_action)
     buttonUpdateRepository.pack()
-
-    # style = ttk.Style()
-    # print(style.theme_names())
-    # style.theme_use('clam')
 
     instead_manager_tk.list_action()
     root.mainloop()

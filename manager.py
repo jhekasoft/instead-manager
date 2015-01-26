@@ -13,6 +13,8 @@ import json
 
 
 class InsteadManager(object):
+    default_config_filename = 'instead-manager-settings.json'
+    run_game_command_postfix = ' &>/dev/null'
 
     def __init__(self, base_path, games_path=None, interpreter_command=None, repositories=None):
         self.base_path = base_path
@@ -30,11 +32,7 @@ class InsteadManager(object):
 
         :return:
         """
-        config_file = 'instead-manager-settings.json'
-        if self.is_win():
-            config_file = 'instead-manager-settings-win.json'
-
-        json_settings_data = open(os.path.join(self.base_path, config_file))
+        json_settings_data = open(os.path.join(self.base_path, self.default_config_filename))
 
         return json.load(json_settings_data)
 
@@ -171,10 +169,8 @@ class InsteadManager(object):
         if len(files) > 0:
             running_name = running_name+'.idf'
 
-        postfix = ''
-        if not self.is_win():
-            postfix = ' &>/dev/null'
-        subprocess.Popen('%s -game "%s"%s' % (self.interpreter_command, running_name, postfix), shell=True)
+        subprocess.Popen('%s -game "%s"%s' % (self.interpreter_command, running_name, self.run_game_command_postfix),
+                         shell=True)
         return True
 
     def delete_game(self, name):
@@ -205,6 +201,15 @@ class InsteadManager(object):
         check, info = self.check_instead_interpreter_with_info()
         return check
 
+    @staticmethod
+    def size_format(size):
+        return InsteadManagerHelper.size_format(size)
+
+class WinInsteadManager(InsteadManager):
+    default_config_filename = 'instead-manager-settings-win.json'
+    run_game_command_postfix = ''
+
+class InsteadManagerHelper(object):
     @staticmethod
     def size_format(size):
         suffix = 'B'
