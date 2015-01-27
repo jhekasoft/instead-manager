@@ -38,9 +38,9 @@ class InsteadManagerTk(object):
 
         # Clear list
         # map(lambda x: print(x), treeRepositoryList.get_children())
-        tree_items = treeRepositoryList.get_children()
+        tree_items = treeGameList.get_children()
         for item in tree_items:
-            treeRepositoryList.delete(item)
+            treeGameList.delete(item)
 
         # Insert games
         for game in game_list:
@@ -48,7 +48,7 @@ class InsteadManagerTk(object):
             if game['name'] in local_game_names:
                 tags = 'installed'
 
-            treeRepositoryList.insert("", 'end', text=game['name'], values=(
+            treeGameList.insert("", 'end', text=game['name'], values=(
                 game['title'], game['lang'], game['version'], self.instead_manager.size_format(int(game['size'])), game['repository_filename']
             ), tags=tags)
 
@@ -57,10 +57,10 @@ class InsteadManagerTk(object):
         self.list_action()
 
     def on_game_list_double_click(self, event):
-        item = treeRepositoryList.identify('item', event.x, event.y)
-        tags = treeRepositoryList.item(item, "tags")
-        name = treeRepositoryList.item(item, "text")
-        title = treeRepositoryList.item(item, "values")[0]
+        item = treeGameList.identify('item', event.x, event.y)
+        tags = treeGameList.item(item, "tags")
+        name = treeGameList.item(item, "text")
+        title = treeGameList.item(item, "values")[0]
 
         if 'installed' in tags:
             self.instead_manager.run_game(name)
@@ -91,13 +91,13 @@ class InsteadManagerTk(object):
             percent = loadedsize * 1e2 / totalsize
             s = "%5.1f%% %s / %s" % (
                 percent, self.instead_manager.size_format(loadedsize), self.instead_manager.size_format(totalsize))
-            treeRepositoryList.set(self.installing_game_tree_item, 'title', '%s %s' % (self.installing_game_title, s))
+            treeGameList.set(self.installing_game_tree_item, 'title', '%s %s' % (self.installing_game_title, s))
 
     def begin_installation_callback(self, game):
-        treeRepositoryList.set(self.installing_game_tree_item, 'title', '%s installing...' % self.installing_game_title)
+        treeGameList.set(self.installing_game_tree_item, 'title', '%s installing...' % self.installing_game_title)
 
     def end_installing(self, game, result):
-        item_index = treeRepositoryList.index(self.installing_game_tree_item)
+        item_index = treeGameList.index(self.installing_game_tree_item)
 
         self.installing_game_tree_item = None
         self.installing_game_title = None
@@ -105,13 +105,17 @@ class InsteadManagerTk(object):
         self.list_action()
 
         # Focus installed game
-        tree_items = treeRepositoryList.get_children()
+        tree_items = treeGameList.get_children()
         for item in tree_items:
-            if treeRepositoryList.index(item) == item_index:
-                treeRepositoryList.selection_set(item)
-                treeRepositoryList.focus(item)
-                treeRepositoryList.yview_scroll(item_index, 'units')
+            if treeGameList.index(item) == item_index:
+                treeGameList.selection_set(item)
+                treeGameList.focus(item)
+                treeGameList.yview_scroll(item_index, 'units')
                 break
+
+    def on_game_select(self, event):
+        title = treeGameList.item(treeGameList.focus(), "values")[0]
+        label.config(text=title)
 
 
 if __name__ == "__main__":
@@ -134,23 +138,44 @@ if __name__ == "__main__":
     # print(style.theme_names())
     # style.theme_use('clam')
 
-    treeRepositoryList = ttk.Treeview(root, columns=('title', 'lang', 'version', 'size', 'repository'), show='headings')
-    treeRepositoryList.column("title", width=350)
-    treeRepositoryList.column("lang", width=50)
-    treeRepositoryList.column("version", width=70)
-    treeRepositoryList.column("size", width=70)
-    treeRepositoryList.column("repository", width=220)
-    treeRepositoryList.heading("title", text="Title")
-    treeRepositoryList.heading("lang", text="Lang", command=lambda: print('lang'))
-    treeRepositoryList.heading("version", text="Version")
-    treeRepositoryList.heading("size", text="Size")
-    treeRepositoryList.heading("repository", text="Repository")
-    treeRepositoryList.tag_configure('installed', background='#dfd')
-    treeRepositoryList.bind("<Double-1>", instead_manager_tk.on_game_list_double_click)
-    treeRepositoryList.pack()
+    content = ttk.Frame(root)
+    frame = ttk.Frame(content, borderwidth=5, relief="sunken", width=200, height=100)
+    label = ttk.Label(frame, text='')
+    label.pack()
 
-    buttonUpdateRepository = ttk.Button(root, text="Update repositories", command=instead_manager_tk.update_and_list_action)
-    buttonUpdateRepository.pack()
+    treeGameList = ttk.Treeview(content, columns=('title', 'lang', 'version', 'size', 'repository'), show='headings')
+    treeGameList.column("title", width=350)
+    treeGameList.column("lang", width=50)
+    treeGameList.column("version", width=70)
+    treeGameList.column("size", width=70)
+    treeGameList.column("repository", width=220)
+    treeGameList.heading("title", text="Title")
+    treeGameList.heading("lang", text="Lang", command=lambda: print('lang'))
+    treeGameList.heading("version", text="Version")
+    treeGameList.heading("size", text="Size")
+    treeGameList.heading("repository", text="Repository")
+    treeGameList.tag_configure('installed', background='#dfd')
+    treeGameList.bind("<Double-1>", instead_manager_tk.on_game_list_double_click)
+    treeGameList.bind('<<TreeviewSelect>>', instead_manager_tk.on_game_select)
+    # treeGameList.pack()
+
+    buttonUpdateRepository = ttk.Button(content, text="Update repositories", command=instead_manager_tk.update_and_list_action)
+
+    content.grid(column=0, row=0)
+    treeGameList.grid(column=0, row=0, columnspan=3, rowspan=2)
+    frame.grid(column=4, row=0, columnspan=3, rowspan=2)
+    buttonUpdateRepository.grid(column=0, row=3)
+
+    # Style Sheet
+    # s = ttk.Style()
+    # s.configure('TFrame', background='#5555ff')
+    # s.configure('TButton', background='blue', foreground='#eeeeff', font=('Sans', '14', 'bold'), sticky=EW)
+    # s.configure('TLabel', font=('Sans', '16', 'bold'), background='#5555ff', foreground='#eeeeff')
+    # s.map('TButton', foreground=[('hover', '#5555ff'), ('focus', 'yellow')])
+    # s.map('TButton', background=[('hover', '#eeeeff'), ('focus', 'orange')])
+    # s.configure('TCombobox', background='#5555ff', foreground='#3333ff', font=('Sans', 18))
+
+    #buttonUpdateRepository.pack()
 
     instead_manager_tk.list_action()
     root.mainloop()
