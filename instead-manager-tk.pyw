@@ -14,6 +14,7 @@ from manager import InsteadManager, WinInsteadManager, InsteadManagerHelper
 
 
 class InsteadManagerTk(object):
+    gui_game_list = {}
     installing_game_tree_item = None
     installing_game_title = None
 
@@ -43,14 +44,17 @@ class InsteadManagerTk(object):
             treeGameList.delete(item)
 
         # Insert games
+        self.gui_game_list = {}
         for game in game_list:
             tags = ''
             if game['name'] in local_game_names:
                 tags = 'installed'
 
-            treeGameList.insert("", 'end', text=game['name'], values=(
+            game_list_item = game
+            item = treeGameList.insert("", 'end', text=game['name'], values=(
                 game['title'], game['lang'], game['version'], self.instead_manager.size_format(int(game['size'])), game['repository_filename']
             ), tags=tags)
+            self.gui_game_list[item] = game_list_item
 
     def update_and_list_action(self):
         self.update_repositories_action()
@@ -75,22 +79,22 @@ class InsteadManagerTk(object):
             for game in filtered_game_list:
 
                 t = Thread(target=lambda: self.instead_manager.install_game(game,
-                                                      download_status_callback=self.download_status_callback,
+                                                      download_status_callback=lambda blocknum, blocksize, totalsize: self.download_status_callback(item, blocknum, blocksize, totalsize),
                                                       begin_installation_callback=self.begin_installation_callback,
                                                       end_installing=self.end_installing))
                 t.start()
 
                 break
 
-    def download_status_callback(self, blocknum, blocksize, totalsize):
+    def download_status_callback(self, item, blocknum, blocksize, totalsize):
         loadedsize = blocknum * blocksize
         if loadedsize > totalsize:
             loadedsize = totalsize
 
         if totalsize > 0:
             percent = loadedsize * 1e2 / totalsize
-            s = "%5.1f%% %s / %s" % (
-                percent, self.instead_manager.size_format(loadedsize), self.instead_manager.size_format(totalsize))
+            s = "%s %5.1f%% %s / %s" % (
+                item, percent, self.instead_manager.size_format(loadedsize), self.instead_manager.size_format(totalsize))
             treeGameList.set(self.installing_game_tree_item, 'title', '%s %s' % (self.installing_game_title, s))
 
     def begin_installation_callback(self, game):
@@ -108,14 +112,18 @@ class InsteadManagerTk(object):
         tree_items = treeGameList.get_children()
         for item in tree_items:
             if treeGameList.index(item) == item_index:
-                treeGameList.selection_set(item)
                 treeGameList.focus(item)
+                treeGameList.selection_set(item)
                 treeGameList.yview_scroll(item_index, 'units')
                 break
 
     def on_game_select(self, event):
-        title = treeGameList.item(treeGameList.focus(), "values")[0]
-        label.config(text=title)
+        title = self.gui_game_list[treeGameList.focus()]['title']
+        repository = self.gui_game_list[treeGameList.focus()]['repository_filename']
+        version = self.gui_game_list[treeGameList.focus()]['version']
+        labelGameTitle.config(text=title)
+        labelGameRepository.config(text=repository)
+        labelGameVersion.config(text=version)
 
 
 if __name__ == "__main__":
@@ -140,8 +148,12 @@ if __name__ == "__main__":
 
     content = ttk.Frame(root)
     frame = ttk.Frame(content, borderwidth=5, relief="sunken", width=200, height=100)
-    label = ttk.Label(frame, text='')
-    label.pack()
+    labelGameTitle = ttk.Label(frame, text='')
+    labelGameRepository = ttk.Label(frame, text='')
+    labelGameVersion = ttk.Label(frame, text='')
+    labelGameTitle.pack()
+    labelGameRepository.pack()
+    labelGameVersion.pack()
 
     treeGameList = ttk.Treeview(content, columns=('title', 'lang', 'version', 'size', 'repository'), show='headings')
     treeGameList.column("title", width=350)

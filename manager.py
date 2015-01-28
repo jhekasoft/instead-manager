@@ -55,6 +55,7 @@ class InsteadManager(object):
 
         game_list_unsorted = []
         for game in xml_game_list:
+            # TODO: make iteration for fields
             title = game.getElementsByTagName("title")[0]
             name = game.getElementsByTagName("name")[0]
             version = game.getElementsByTagName("version")[0]
