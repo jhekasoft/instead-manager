@@ -15,8 +15,9 @@ from manager import InsteadManager, WinInsteadManager, InsteadManagerHelper
 
 class InsteadManagerTk(object):
     gui_game_list = {}
-    installing_game_tree_item = None
-    installing_game_title = None
+    gui_selected_item = ""
+    installing_game_tree_item = None # deprecated
+    installing_game_title = None # deprecated
 
     def __init__(self, instead_manager):
         self.instead_manager = instead_manager
@@ -46,13 +47,18 @@ class InsteadManagerTk(object):
         # Insert games
         self.gui_game_list = {}
         for game in game_list:
-            tags = ''
-            if game['name'] in local_game_names:
-                tags = 'installed'
-
             game_list_item = game
-            item = treeGameList.insert("", 'end', text=game['name'], values=(
-                game['title'], game['lang'], game['version'], self.instead_manager.size_format(int(game['size'])), game['repository_filename']
+            game_list_item['installed'] = True if game['name'] in local_game_names else False
+
+            tags = ''
+            if game_list_item['installed']:
+                tags = 'installed'
+            item = treeGameList.insert("", 'end', text=game_list_item['name'], values=(
+                game_list_item['title'],
+                game_list_item['lang'],
+                game_list_item['version'],
+                self.instead_manager.size_format(int(game_list_item['size'])),
+                game_list_item['repository_filename']
             ), tags=tags)
             self.gui_game_list[item] = game_list_item
 
@@ -75,10 +81,11 @@ class InsteadManagerTk(object):
             game_list = self.instead_manager.get_sorted_game_list()
             filtered_game_list = self.instead_manager.filter_games(game_list, name)
 
-            found = bool(filtered_game_list)
+            # found = bool(filtered_game_list)
             for game in filtered_game_list:
 
-                t = Thread(target=lambda: self.instead_manager.install_game(game,
+                t = Thread(target=lambda:
+                    self.instead_manager.install_game(game,
                                                       download_status_callback=lambda blocknum, blocksize, totalsize: self.download_status_callback(item, blocknum, blocksize, totalsize),
                                                       begin_installation_callback=self.begin_installation_callback,
                                                       end_installing=self.end_installing))
@@ -118,13 +125,24 @@ class InsteadManagerTk(object):
                 break
 
     def on_game_select(self, event):
-        title = self.gui_game_list[treeGameList.focus()]['title']
-        repository = self.gui_game_list[treeGameList.focus()]['repository_filename']
-        version = self.gui_game_list[treeGameList.focus()]['version']
+        self.gui_selected_item = treeGameList.focus()
+        title = self.gui_game_list[self.gui_selected_item]['title']
+        repository = self.gui_game_list[self.gui_selected_item]['repository_filename']
+        version = self.gui_game_list[self.gui_selected_item]['version']
         labelGameTitle.config(text=title)
         labelGameRepository.config(text=repository)
         labelGameVersion.config(text=version)
+        self.changeGameButtonsState(self.gui_game_list[self.gui_selected_item]['installed'])
 
+    def changeGameButtonsState(self, installed):
+        if installed:
+            buttonGamePlay.state(['!disabled'])
+            buttonGameDelete.state(['!disabled'])
+            buttonGameInstall.state(['disabled'])
+        else:
+            buttonGamePlay.state(['disabled'])
+            buttonGameDelete.state(['disabled'])
+            buttonGameInstall.state(['!disabled'])
 
 if __name__ == "__main__":
     base_path = os.path.dirname(os.path.realpath(__file__))
@@ -148,12 +166,20 @@ if __name__ == "__main__":
 
     content = ttk.Frame(root)
     frame = ttk.Frame(content, borderwidth=5, relief="sunken", width=200, height=100)
+
     labelGameTitle = ttk.Label(frame, text='')
     labelGameRepository = ttk.Label(frame, text='')
     labelGameVersion = ttk.Label(frame, text='')
+    buttonGamePlay = ttk.Button(frame, text="Play", state="disabled")
+    buttonGameDelete = ttk.Button(frame, text="Delete", state="disabled")
+    buttonGameInstall = ttk.Button(frame, text="Install", state="disabled")
+
     labelGameTitle.pack()
     labelGameRepository.pack()
     labelGameVersion.pack()
+    buttonGamePlay.pack()
+    buttonGameDelete.pack()
+    buttonGameInstall.pack()
 
     treeGameList = ttk.Treeview(content, columns=('title', 'lang', 'version', 'size', 'repository'), show='headings')
     treeGameList.column("title", width=350)
