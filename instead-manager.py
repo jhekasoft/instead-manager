@@ -110,7 +110,7 @@ class InsteadManagerConsole(object):
         found = bool(filtered_game_list)
         for game in filtered_game_list:
             installed =\
-                self.instead_manager.install_game(game, run,
+                self.instead_manager.install_game_action(game, run,
                                                   download_status_callback=self.download_status_callback,
                                                   begin_downloading_callback=self.begin_downloading_callback,
                                                   begin_installation_callback=self.begin_installation_callback)
@@ -133,7 +133,7 @@ class InsteadManagerConsole(object):
     def run_action(self, name: str):
         self.out('Running %s ...' % name)
 
-        run = self.instead_manager.run_game(name)
+        run = self.instead_manager.run_game_action(name)
 
         if not run:
             self.out_fail("Game hasn't run", exit=True)
@@ -141,7 +141,7 @@ class InsteadManagerConsole(object):
         self.out_success("Game has run")
 
     def delete_action(self, name: str):
-        deleted = self.instead_manager.delete_game(name)
+        deleted = self.instead_manager.delete_game_action(name)
         if not deleted:
             self.out_fail("Game hasn't been deleted", exit=True)
 

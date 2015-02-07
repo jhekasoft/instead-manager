@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <game_list version="1.0">
  <game>
+  <name>Gramlend</name>
+  <title>Грамленд</title>
+  <version>1.1</version>
+  <url>http://instead-games.ru/download/instead-Gramlend-.zip</url>
+  <size>303529</size>
+  <lang>ru</lang>
+  <descurl>http://instead-games.ru/game.php?ID=199</descurl>
+ </game>
+ <game>
   <name>petals</name>
   <title>Лепестки</title>
   <version>1.1</version>
@@ -8,15 +17,6 @@
   <size>1519853</size>
   <lang>ru</lang>
   <descurl>http://instead-games.ru/game.php?ID=196</descurl>
- </game>
- <game>
-  <name>fatal_things</name>
-  <title>Неизбежные вещи</title>
-  <version>0.3</version>
-  <url>http://instead-games.ru/download/instead-fatal_things-0.3.zip</url>
-  <size>7797037</size>
-  <lang>ru</lang>
-  <descurl>http://instead-games.ru/game.php?ID=195</descurl>
  </game>
  <game>
   <name>city_of_mists</name>
@@ -179,15 +179,6 @@
   <size>7420</size>
   <lang>ru</lang>
   <descurl>http://instead-games.ru/game.php?ID=142</descurl>
- </game>
- <game>
-  <name>hands_off</name>
-  <title>Руками не трогать!</title>
-  <version>0.3.4</version>
-  <url>http://instead-games.ru/download/instead-hands_off-0.3.4.zip</url>
-  <size>25216</size>
-  <lang>ru</lang>
-  <descurl>http://instead-games.ru/game.php?ID=101</descurl>
  </game>
  <game>
   <name>island_of_octopus-demo</name>

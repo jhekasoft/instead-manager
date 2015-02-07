@@ -67,31 +67,15 @@ class InsteadManagerTk(object):
         self.list_action()
 
     def on_game_list_double_click(self, event):
-        item = treeGameList.identify('item', event.x, event.y)
+        #item = treeGameList.identify('item', event.x, event.y)
+        item = self.gui_selected_item
         tags = treeGameList.item(item, "tags")
-        name = treeGameList.item(item, "text")
-        title = treeGameList.item(item, "values")[0]
 
         if 'installed' in tags:
-            self.instead_manager.run_game(name)
+            self.run_game_action()
         elif self.installing_game_tree_item is None:
-            self.installing_game_tree_item = item
-            self.installing_game_title = title
+            self.install_game_action()
 
-            game_list = self.instead_manager.get_sorted_game_list()
-            filtered_game_list = self.instead_manager.filter_games(game_list, name)
-
-            # found = bool(filtered_game_list)
-            for game in filtered_game_list:
-
-                t = Thread(target=lambda:
-                    self.instead_manager.install_game(game,
-                                                      download_status_callback=lambda blocknum, blocksize, totalsize: self.download_status_callback(item, blocknum, blocksize, totalsize),
-                                                      begin_installation_callback=self.begin_installation_callback,
-                                                      end_installing=self.end_installing))
-                t.start()
-
-                break
 
     def download_status_callback(self, item, blocknum, blocksize, totalsize):
         loadedsize = blocknum * blocksize
@@ -132,9 +116,44 @@ class InsteadManagerTk(object):
         labelGameTitle.config(text=title)
         labelGameRepository.config(text=repository)
         labelGameVersion.config(text=version)
-        self.changeGameButtonsState(self.gui_game_list[self.gui_selected_item]['installed'])
+        self.change_game_buttons_state(self.gui_game_list[self.gui_selected_item]['installed'])
 
-    def changeGameButtonsState(self, installed):
+    def install_game_action(self):
+        item = self.gui_selected_item
+        # tags = treeGameList.item(item, "tags")
+        name = treeGameList.item(item, "text")
+        title = treeGameList.item(item, "values")[0]
+
+        self.installing_game_tree_item = item
+        self.installing_game_title = title
+
+        game_list = self.instead_manager.get_sorted_game_list()
+        filtered_game_list = self.instead_manager.filter_games(game_list, name)
+
+        # found = bool(filtered_game_list)
+        for game in filtered_game_list:
+
+            t = Thread(target=lambda:
+                self.instead_manager.install_game(game,
+                                                  download_status_callback=lambda blocknum, blocksize, totalsize: self.download_status_callback(item, blocknum, blocksize, totalsize),
+                                                  begin_installation_callback=self.begin_installation_callback,
+                                                  end_installing=self.end_installing))
+            t.start()
+
+            break
+
+    def run_game_action(self):
+        item = self.gui_selected_item
+        name = treeGameList.item(item, "text")
+        self.instead_manager.run_game(name)
+
+    def delete_game_action(self):
+        item = self.gui_selected_item
+        name = treeGameList.item(item, "text")
+        self.instead_manager.delete_game(name)
+        self.list_action()
+
+    def change_game_buttons_state(self, installed):
         if installed:
             buttonGamePlay.state(['!disabled'])
             buttonGameDelete.state(['!disabled'])
@@ -170,9 +189,9 @@ if __name__ == "__main__":
     labelGameTitle = ttk.Label(frame, text='')
     labelGameRepository = ttk.Label(frame, text='')
     labelGameVersion = ttk.Label(frame, text='')
-    buttonGamePlay = ttk.Button(frame, text="Play", state="disabled")
-    buttonGameDelete = ttk.Button(frame, text="Delete", state="disabled")
-    buttonGameInstall = ttk.Button(frame, text="Install", state="disabled")
+    buttonGamePlay = ttk.Button(frame, text="Play", state="disabled", command=instead_manager_tk.run_game_action)
+    buttonGameDelete = ttk.Button(frame, text="Delete", state="disabled", command=instead_manager_tk.delete_game_action)
+    buttonGameInstall = ttk.Button(frame, text="Install", state="disabled", command=instead_manager_tk.install_game_action)
 
     labelGameTitle.pack()
     labelGameRepository.pack()
