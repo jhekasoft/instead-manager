@@ -112,7 +112,7 @@ class InsteadManager(object):
 
     def install_game(self, game, run=False, download_status_callback=None,
                      begin_downloading_callback=None, begin_installation_callback=None,
-                     end_installing=None):
+                     end_installation=None):
 
         # Downloading game to the temp file
         if begin_downloading_callback:
@@ -145,8 +145,8 @@ class InsteadManager(object):
         if 0 != return_code:
             result = False
 
-        if end_installing:
-            end_installing(game, end_installing)
+        if end_installation:
+            end_installation(game, end_installation)
 
         return result
 

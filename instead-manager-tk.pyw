@@ -15,9 +15,7 @@ from manager import InsteadManager, WinInsteadManager, InsteadManagerHelper
 
 class InsteadManagerTk(object):
     gui_game_list = {}
-    gui_selected_item = ""
-    installing_game_tree_item = None # deprecated
-    installing_game_title = None # deprecated
+    gui_selected_item = ''
 
     def __init__(self, instead_manager):
         self.instead_manager = instead_manager
@@ -73,7 +71,7 @@ class InsteadManagerTk(object):
 
         if 'installed' in tags:
             self.run_game_action()
-        elif self.installing_game_tree_item is None:
+        else:
             self.install_game_action()
 
 
@@ -84,18 +82,15 @@ class InsteadManagerTk(object):
 
         if totalsize > 0:
             percent = loadedsize * 1e2 / totalsize
-            s = "%s %5.1f%% %s / %s" % (
-                item, percent, self.instead_manager.size_format(loadedsize), self.instead_manager.size_format(totalsize))
-            treeGameList.set(self.installing_game_tree_item, 'title', '%s %s' % (self.installing_game_title, s))
+            s = "%5.1f%% %s / %s" % (
+                percent, self.instead_manager.size_format(loadedsize), self.instead_manager.size_format(totalsize))
+            treeGameList.set(item, 'title', '%s %s' % (self.gui_game_list[item]['title'], s))
 
-    def begin_installation_callback(self, game):
-        treeGameList.set(self.installing_game_tree_item, 'title', '%s installing...' % self.installing_game_title)
+    def begin_installation_callback(self, item):
+        treeGameList.set(item, 'title', '%s installing...' % self.gui_game_list[item]['title'])
 
-    def end_installing(self, game, result):
-        item_index = treeGameList.index(self.installing_game_tree_item)
-
-        self.installing_game_tree_item = None
-        self.installing_game_title = None
+    def end_installation(self, item, game, result):
+        item_index = treeGameList.index(item)
 
         self.list_action()
 
@@ -124,9 +119,6 @@ class InsteadManagerTk(object):
         name = treeGameList.item(item, "text")
         title = treeGameList.item(item, "values")[0]
 
-        self.installing_game_tree_item = item
-        self.installing_game_title = title
-
         game_list = self.instead_manager.get_sorted_game_list()
         filtered_game_list = self.instead_manager.filter_games(game_list, name)
 
@@ -136,8 +128,8 @@ class InsteadManagerTk(object):
             t = Thread(target=lambda:
                 self.instead_manager.install_game(game,
                                                   download_status_callback=lambda blocknum, blocksize, totalsize: self.download_status_callback(item, blocknum, blocksize, totalsize),
-                                                  begin_installation_callback=self.begin_installation_callback,
-                                                  end_installing=self.end_installing))
+                                                  begin_installation_callback=lambda game: self.begin_installation_callback(item),
+                                                  end_installation=lambda game, result: self.end_installation(item, game, result)))
             t.start()
 
             break
