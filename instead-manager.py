@@ -97,9 +97,9 @@ class InsteadManagerConsole(object):
         game_list = self.instead_manager.get_sorted_game_list()
         self.print_game_list(game_list, verbose)
 
-    def search_action(self, search: str, verbose: bool):
+    def search_action(self, search: str=None, repository: str=None, verbose: bool=False):
         game_list = self.instead_manager.get_sorted_game_list()
-        filtered_game_list = self.instead_manager.filter_games(game_list, search)
+        filtered_game_list = self.instead_manager.filter_games(game_list, search, repository)
 
         self.print_game_list(filtered_game_list, verbose)
 
@@ -163,6 +163,8 @@ if __name__ == "__main__":
                         help='list games')
     parser.add_argument('-s', '--search', nargs='?', type=str,
                         help='search games')
+    parser.add_argument('-rep', '--filter-repository', nargs='?', type=str,
+                        help='filter by repository')
     parser.add_argument('-i', '--install', nargs='?', type=str,
                         help='install game by name or title')
     parser.add_argument('-r', '--run', nargs='?', type=str, const='const',
@@ -208,8 +210,9 @@ if __name__ == "__main__":
             instead_manager_console.check_instead_interpreter_action(args.verbose)
     elif args.list:
         instead_manager_console.list_action(args.verbose)
-    elif args.search:
-        instead_manager_console.search_action(args.search, args.verbose)
+    elif args.search or args.filter_repository:
+        instead_manager_console.search_action(search=args.search, repository=args.filter_repository,
+                                              verbose=args.verbose)
     elif args.install:
         instead_manager_console.install_action(args.install, args.run, args.verbose)
     elif args.local_list:

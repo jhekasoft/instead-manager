@@ -91,11 +91,27 @@ class InsteadManager(object):
 
         return local_game_list
 
-    def filter_games(self, game_list, keyword: str):
+    def is_found_keyword(self, game, value):
+        search_regex = '.*%s.*' % re.escape(value)
+        return re.search(search_regex, game['title'], re.IGNORECASE) or re.search(search_regex, game['name'], re.IGNORECASE)
+
+    def is_found_repository(self, game, value):
+        return game['repository_filename'] == value or game['repository_filename'] == value + '.xml'
+
+    def filter_games(self, game_list, keyword: str=None, repository: str=None, lang: str=None):
+        if keyword is not None:
+            game_list = self.filter_by(game_list, self.is_found_keyword, keyword)
+        if repository is not None:
+            game_list = self.filter_by(game_list, self.is_found_repository, repository)
+
+        return game_list
+
+    def filter_by(self, game_list, found_callback, value):
         filtered_game_list = []
-        search_regex = '.*%s.*' % re.escape(keyword)
+
         for game in game_list:
-            if re.search(search_regex, game['title'], re.IGNORECASE) or re.search(search_regex, game['name'], re.IGNORECASE):
+            found = found_callback(game, value)
+            if found:
                 filtered_game_list.append(game)
 
         return filtered_game_list
