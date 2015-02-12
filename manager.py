@@ -98,11 +98,16 @@ class InsteadManager(object):
     def is_found_repository(self, game, value):
         return game['repository_filename'] == value or game['repository_filename'] == value + '.xml'
 
+    def is_found_lang(self, game, value):
+        return game['lang'] == value
+
     def filter_games(self, game_list, keyword: str=None, repository: str=None, lang: str=None):
         if keyword is not None:
             game_list = self.filter_by(game_list, self.is_found_keyword, keyword)
         if repository is not None:
             game_list = self.filter_by(game_list, self.is_found_repository, repository)
+        if lang is not None:
+            game_list = self.filter_by(game_list, self.is_found_lang, lang)
 
         return game_list
 
