@@ -27,8 +27,11 @@ class InsteadManagerTk(object):
         self.instead_manager.\
             update_repositories(begin_repository_downloading_callback=self.begin_repository_downloading_callback)
 
-    def list_action(self):
+    def list_action(self, search: str=None, repository: str=None, lang: str=None):
         game_list = self.instead_manager.get_sorted_game_list()
+
+        if search or repository or lang:
+            game_list = self.instead_manager.filter_games(game_list, search, repository, lang)
 
         local_game_list = self.instead_manager.get_sorted_local_game_list()
 
@@ -176,7 +179,22 @@ if __name__ == "__main__":
     # style.theme_use('clam')
 
     content = ttk.Frame(root)
-    frame = ttk.Frame(content, borderwidth=5, relief="sunken", width=200, height=100)
+
+    frameFilter = ttk.Frame(content, borderwidth=1, relief="sunken", width=200, height=100)
+    gui_keyword = StringVar()
+    def gui_keyword_change(a, b, c):
+        if len(gui_keyword.get()) >= 1:
+            instead_manager_tk.list_action(search=gui_keyword.get())
+        else:
+            instead_manager_tk.list_action()
+        entryKeyword.update_idletasks()
+
+    gui_keyword.trace('w', gui_keyword_change)
+    # gui_keyword.set('test')
+    entryKeyword = ttk.Entry(frameFilter, textvariable=gui_keyword)
+    entryKeyword.pack()
+
+    frame = ttk.Frame(content, borderwidth=1, relief="sunken", width=200, height=100)
 
     labelGameTitle = ttk.Label(frame, text='')
     labelGameRepository = ttk.Label(frame, text='')
@@ -211,8 +229,9 @@ if __name__ == "__main__":
     buttonUpdateRepository = ttk.Button(content, text="Update repositories", command=instead_manager_tk.update_and_list_action)
 
     content.grid(column=0, row=0)
-    treeGameList.grid(column=0, row=0, columnspan=3, rowspan=2)
-    frame.grid(column=4, row=0, columnspan=3, rowspan=2)
+    frameFilter.grid(column=0, row=0, columnspan=3, rowspan=1)
+    treeGameList.grid(column=0, row=1, columnspan=3, rowspan=2)
+    frame.grid(column=4, row=1, columnspan=3, rowspan=2)
     buttonUpdateRepository.grid(column=0, row=3)
 
     # Style Sheet
