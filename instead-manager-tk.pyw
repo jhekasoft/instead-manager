@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
 
-__title__ = 'instead-manager'
-__version__ = "0.8"
+__title__ = 'instead-manager-tk'
+__version__ = "0.9"
 __author__ = "Evgeniy Efremov aka jhekasoft"
 __email__ = "jhekasoft@gmail.com"
 
@@ -27,11 +27,17 @@ class InsteadManagerTk(object):
         self.instead_manager.\
             update_repositories(begin_repository_downloading_callback=self.begin_repository_downloading_callback)
 
-    def list_action(self, search: str=None, repository: str=None, lang: str=None):
+    def list_action(self):
         game_list = self.instead_manager.get_sorted_game_list()
 
-        if search or repository or lang:
-            game_list = self.instead_manager.filter_games(game_list, search, repository, lang)
+        repositories = [''] + self.instead_manager.get_gamelist_repositories(game_list)
+        optionMenuRepository.set_menu(None, *repositories)
+
+        langs = [''] + self.instead_manager.get_gamelist_langs(game_list)
+        optionMenuLang.set_menu(None, *langs)
+
+        if gui_keyword.get() or gui_repository.get() or gui_lang.get():
+            game_list = self.instead_manager.filter_games(game_list, gui_keyword.get(), gui_repository.get(), gui_lang.get())
 
         local_game_list = self.instead_manager.get_sorted_local_game_list()
 
@@ -182,17 +188,30 @@ if __name__ == "__main__":
 
     frameFilter = ttk.Frame(content, borderwidth=1, relief="sunken", width=200, height=100)
     gui_keyword = StringVar()
+    gui_repository = StringVar()
+    gui_lang = StringVar()
     def gui_keyword_change(a, b, c):
-        if len(gui_keyword.get()) >= 1:
-            instead_manager_tk.list_action(search=gui_keyword.get())
-        else:
-            instead_manager_tk.list_action()
+        instead_manager_tk.list_action()
         entryKeyword.update_idletasks()
-
     gui_keyword.trace('w', gui_keyword_change)
+
+    def gui_repository_change(a, b, c):
+        instead_manager_tk.list_action()
+    gui_repository.trace('w', gui_repository_change)
+
+    def gui_lang_change(a, b, c):
+        instead_manager_tk.list_action()
+    gui_lang.trace('w', gui_lang_change)
+
     # gui_keyword.set('test')
     entryKeyword = ttk.Entry(frameFilter, textvariable=gui_keyword)
-    entryKeyword.pack()
+    entryKeyword.pack(side=LEFT)
+
+    optionMenuRepository = ttk.OptionMenu(frameFilter, variable=gui_repository)
+    optionMenuRepository.pack(side=LEFT)
+
+    optionMenuLang = ttk.OptionMenu(frameFilter, variable=gui_lang)
+    optionMenuLang.pack(side=LEFT)
 
     frame = ttk.Frame(content, borderwidth=1, relief="sunken", width=200, height=100)
 

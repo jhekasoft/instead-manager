@@ -91,6 +91,22 @@ class InsteadManager(object):
 
         return local_game_list
 
+    def get_gamelist_repositories(self, game_list):
+        repositories = []
+        for game in game_list:
+            if game['repository_filename'] not in repositories:
+                repositories.append(game['repository_filename'])
+
+        return repositories
+
+    def get_gamelist_langs(self, game_list):
+        langs = []
+        for game in game_list:
+            if game['lang'] not in langs:
+                langs.append(game['lang'])
+
+        return langs
+
     def is_found_keyword(self, game, value):
         search_regex = '.*%s.*' % re.escape(value)
         return re.search(search_regex, game['title'], re.IGNORECASE) or re.search(search_regex, game['name'], re.IGNORECASE)
@@ -102,11 +118,11 @@ class InsteadManager(object):
         return game['lang'] == value
 
     def filter_games(self, game_list, keyword: str=None, repository: str=None, lang: str=None):
-        if keyword is not None:
+        if keyword:
             game_list = self.filter_by(game_list, self.is_found_keyword, keyword)
-        if repository is not None:
+        if repository:
             game_list = self.filter_by(game_list, self.is_found_repository, repository)
-        if lang is not None:
+        if lang:
             game_list = self.filter_by(game_list, self.is_found_lang, lang)
 
         return game_list
