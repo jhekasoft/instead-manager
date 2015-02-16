@@ -25,6 +25,7 @@ class InsteadManager(object):
         self.games_path = games_path if games_path else settings['games_path']
         self.interpreter_command = interpreter_command if interpreter_command else settings['interpreter_command']
         self.repositories = repositories if repositories else settings['repositories']
+        self.repositories_directory = '%s/repositories/' % self.base_path
 
     def read_settings(self):
         """
@@ -37,7 +38,10 @@ class InsteadManager(object):
         return json.load(json_settings_data)
 
     def get_sorted_game_list(self):
-        files = glob.glob('%s/repositories/*.xml' % self.base_path)
+        files = glob.glob('%s/*.xml' % self.repositories_directory)
+        if not files:
+            raise RepositoryFilesAreMissingError('No repository files in %s. Please try to update it.' %
+                                                 self.repositories_directory)
 
         game_list = []
         for file in files:
@@ -137,13 +141,17 @@ class InsteadManager(object):
 
         return filtered_game_list
 
-    def update_repositories(self, download_status_callback=None, begin_repository_downloading_callback=None):
+    def update_repositories(self, download_status_callback=None, begin_repository_downloading_callback=None,
+                            end_downloading=None):
         for repository in self.repositories:
             if begin_repository_downloading_callback:
                 begin_repository_downloading_callback(repository)
 
             filename = os.path.join(self.base_path, 'repositories', repository['name']+'.xml')
             urllib.request.urlretrieve(repository['url'], filename, download_status_callback)
+
+        if end_downloading:
+            end_downloading()
 
         return True
 
@@ -243,9 +251,11 @@ class InsteadManager(object):
     def size_format(size):
         return InsteadManagerHelper.size_format(size)
 
+
 class WinInsteadManager(InsteadManager):
     default_config_filename = 'instead-manager-settings-win.json'
     run_game_command_postfix = ''
+
 
 class InsteadManagerHelper(object):
     @staticmethod
@@ -260,3 +270,7 @@ class InsteadManagerHelper(object):
     @staticmethod
     def is_win():
         return any(platform.win32_ver())
+
+
+class RepositoryFilesAreMissingError(Exception):
+    pass

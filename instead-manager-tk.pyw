@@ -10,25 +10,43 @@ import os
 from threading import Thread
 from tkinter import *
 import tkinter.ttk as ttk
-from manager import InsteadManager, WinInsteadManager, InsteadManagerHelper
+from manager import InsteadManager, WinInsteadManager, InsteadManagerHelper, RepositoryFilesAreMissingError
 
 
 class InsteadManagerTk(object):
     gui_game_list = {}
     gui_selected_item = ''
+    gui_messages = {
+        'update_repo': 'Update repositories'
+    }
 
     def __init__(self, instead_manager):
         self.instead_manager = instead_manager
 
     def begin_repository_downloading_callback(self, repository):
-        print('Downloading %s...' % repository['url'])
+        buttonUpdateRepository['text'] = 'Downloading %s...' % repository['url']
+
+    def end_downloading_repositories(self, list=False):
+        buttonUpdateRepository['text'] = self.gui_messages['update_repo']
+        buttonUpdateRepository.state(['!disabled'])
+        if list:
+            self.list_action()
 
     def update_repositories_action(self):
-        self.instead_manager.\
-            update_repositories(begin_repository_downloading_callback=self.begin_repository_downloading_callback)
+        buttonUpdateRepository.state(['disabled'])
+        t = Thread(target=lambda:
+                   self.instead_manager.\
+                   update_repositories(begin_repository_downloading_callback=self.begin_repository_downloading_callback,
+                                       end_downloading=self.end_downloading_repositories))
+        t.start()
 
     def list_action(self):
-        game_list = self.instead_manager.get_sorted_game_list()
+        try:
+            game_list = self.instead_manager.get_sorted_game_list()
+        except RepositoryFilesAreMissingError:
+            # Try to update repositories if files are missing
+            self.update_and_list_action()
+            return
 
         repositories = [''] + self.instead_manager.get_gamelist_repositories(game_list)
         optionMenuRepository.set_menu(None, *repositories)
@@ -70,8 +88,12 @@ class InsteadManagerTk(object):
             self.gui_game_list[item] = game_list_item
 
     def update_and_list_action(self):
-        self.update_repositories_action()
-        self.list_action()
+        buttonUpdateRepository.state(['disabled'])
+        t = Thread(target=lambda:
+                   self.instead_manager.\
+                   update_repositories(begin_repository_downloading_callback=self.begin_repository_downloading_callback,
+                                       end_downloading=lambda: self.end_downloading_repositories(True)))
+        t.start()
 
     def on_game_list_double_click(self, event):
         #item = treeGameList.identify('item', event.x, event.y)
@@ -245,7 +267,7 @@ if __name__ == "__main__":
     treeGameList.bind('<<TreeviewSelect>>', instead_manager_tk.on_game_select)
     # treeGameList.pack()
 
-    buttonUpdateRepository = ttk.Button(content, text="Update repositories", command=instead_manager_tk.update_and_list_action)
+    buttonUpdateRepository = ttk.Button(content, text=instead_manager_tk.gui_messages['update_repo'], command=instead_manager_tk.update_and_list_action)
 
     content.grid(column=0, row=0)
     frameFilter.grid(column=0, row=0, columnspan=3, rowspan=1)
@@ -264,5 +286,7 @@ if __name__ == "__main__":
 
     #buttonUpdateRepository.pack()
 
+    root.wait_visibility()
     instead_manager_tk.list_action()
+    #root.after_idle(instead_manager_tk.list_action)
     root.mainloop()

@@ -2,3 +2,5 @@
 
 /temp/
 /.idea/
+/repositories/*
+!/repositories/.gitkeep

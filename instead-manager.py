@@ -85,6 +85,12 @@ class InsteadManagerConsole(object):
             game['version']
         ))
 
+    def get_sorted_game_list(self):
+        try:
+            return self.instead_manager.get_sorted_game_list()
+        except Exception as e:
+            self.out_fail(e.__str__(), True)
+
     def update_repositories_action(self):
         self.instead_manager.\
             update_repositories(download_status_callback=self.download_status_callback,
@@ -94,17 +100,17 @@ class InsteadManagerConsole(object):
         self.out('Downloading %s...' % (Style.BRIGHT + repository['url'] + Style.RESET_ALL))
 
     def list_action(self, verbose: bool):
-        game_list = self.instead_manager.get_sorted_game_list()
+        game_list = self.get_sorted_game_list()
         self.print_game_list(game_list, verbose)
 
     def search_action(self, search: str=None, repository: str=None, lang: str=None, verbose: bool=False):
-        game_list = self.instead_manager.get_sorted_game_list()
+        game_list = self.get_sorted_game_list()
         filtered_game_list = self.instead_manager.filter_games(game_list, search, repository, lang)
 
         self.print_game_list(filtered_game_list, verbose)
 
     def install_action(self, name: str, run: str, verbose: bool):
-        game_list = self.instead_manager.get_sorted_game_list()
+        game_list = self.get_sorted_game_list()
         filtered_game_list = self.instead_manager.filter_games(game_list, name)
 
         found = bool(filtered_game_list)
