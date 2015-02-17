@@ -52,7 +52,7 @@ C:\Python34\python.exe instead-manager.py -h
 GUI
 ---
 
-`ikinter` implementation.
+`tkinter` implementation.
 
 ![alt text](https://github.com/jhekasoft/instead-manager/raw/master/docs/images/instead-manager-tk.png "instead-manager tkinter")
 
