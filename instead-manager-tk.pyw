@@ -44,8 +44,6 @@ class InsteadManagerTk(object):
         try:
             game_list = self.instead_manager.get_sorted_game_list()
         except RepositoryFilesAreMissingError:
-            # Try to update repositories if files are missing
-            self.update_and_list_action()
             return
 
         repositories = [''] + self.instead_manager.get_gamelist_repositories(game_list)
@@ -94,6 +92,14 @@ class InsteadManagerTk(object):
                    update_repositories(begin_repository_downloading_callback=self.begin_repository_downloading_callback,
                                        end_downloading=lambda: self.end_downloading_repositories(True)))
         t.start()
+
+    def check_repositories_action(self):
+        try:
+            self.instead_manager.get_sorted_game_list()
+        except RepositoryFilesAreMissingError:
+            self.update_and_list_action()
+            return
+        self.list_action()
 
     def on_game_list_double_click(self, event):
         #item = treeGameList.identify('item', event.x, event.y)
@@ -287,6 +293,5 @@ if __name__ == "__main__":
     #buttonUpdateRepository.pack()
 
     root.wait_visibility()
-    instead_manager_tk.list_action()
-    #root.after_idle(instead_manager_tk.list_action)
+    instead_manager_tk.check_repositories_action()
     root.mainloop()
