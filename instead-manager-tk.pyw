@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 __title__ = 'instead-manager-tk'
-__version__ = "0.9"
+__version__ = "0.10"
 __author__ = "Evgeniy Efremov aka jhekasoft"
 __email__ = "jhekasoft@gmail.com"
 
@@ -32,17 +32,9 @@ class InsteadManagerTk(object):
         if list:
             self.list_action()
 
-    def update_repositories_action(self):
-        buttonUpdateRepository.state(['disabled'])
-        t = Thread(target=lambda:
-                   self.instead_manager.\
-                   update_repositories(begin_repository_downloading_callback=self.begin_repository_downloading_callback,
-                                       end_downloading=self.end_downloading_repositories))
-        t.start()
-
     def list_action(self):
         try:
-            game_list = self.instead_manager.get_sorted_game_list()
+            game_list = self.instead_manager.get_combined_game_list()
         except RepositoryFilesAreMissingError:
             return
 
@@ -55,12 +47,6 @@ class InsteadManagerTk(object):
         if gui_keyword.get() or gui_repository.get() or gui_lang.get():
             game_list = self.instead_manager.filter_games(game_list, gui_keyword.get(), gui_repository.get(), gui_lang.get())
 
-        local_game_list = self.instead_manager.get_sorted_local_game_list()
-
-        local_game_names = []
-        for local_game in local_game_list:
-            local_game_names.append(local_game['name'])
-
         # Clear list
         # map(lambda x: print(x), treeRepositoryList.get_children())
         tree_items = treeGameList.get_children()
@@ -71,7 +57,6 @@ class InsteadManagerTk(object):
         self.gui_game_list = {}
         for game in game_list:
             game_list_item = game
-            game_list_item['installed'] = True if game['name'] in local_game_names else False
 
             tags = ''
             if game_list_item['installed']:
@@ -90,12 +75,12 @@ class InsteadManagerTk(object):
         t = Thread(target=lambda:
                    self.instead_manager.\
                    update_repositories(begin_repository_downloading_callback=self.begin_repository_downloading_callback,
-                                       end_downloading=lambda: self.end_downloading_repositories(True)))
+                                       end_downloading_callback=lambda: self.end_downloading_repositories(True)))
         t.start()
 
     def check_repositories_action(self):
         try:
-            self.instead_manager.get_sorted_game_list()
+            self.instead_manager.get_repository_files()
         except RepositoryFilesAreMissingError:
             self.update_and_list_action()
             return
@@ -230,6 +215,8 @@ if __name__ == "__main__":
     def gui_lang_change(a, b, c):
         instead_manager_tk.list_action()
     gui_lang.trace('w', gui_lang_change)
+
+    # TODO: move global vars to the GUI class
 
     # gui_keyword.set('test')
     entryKeyword = ttk.Entry(frameFilter, textvariable=gui_keyword)

@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 __title__ = 'instead-manager'
-__version__ = "0.9"
+__version__ = "0.10"
 __author__ = "Evgeniy Efremov aka jhekasoft"
 __email__ = "jhekasoft@gmail.com"
 
@@ -162,7 +162,7 @@ class InsteadManagerConsole(object):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='%s (INSTEAD games manager) %s' % (__title__, __version__))
+    parser = argparse.ArgumentParser(description='%s (INSTEAD Manager) %s' % (__title__, __version__))
     parser.add_argument('-u', '--update-repositories', action='store_true',
                         help='update repositories')
     parser.add_argument('-l', '--list', action='store_true',

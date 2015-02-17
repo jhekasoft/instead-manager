@@ -37,16 +37,25 @@ class InsteadManager(object):
 
         return json.load(json_settings_data)
 
-    def get_sorted_game_list(self):
+    def get_repository_files(self):
         files = glob.glob('%s/*.xml' % self.repositories_directory)
         if not files:
             raise RepositoryFilesAreMissingError('No repository files in %s. Please try to update it.' %
                                                  self.repositories_directory)
 
+        return files
+
+    def get_game_list(self):
+        files = self.get_repository_files()
+
         game_list = []
         for file in files:
             game_list.extend(self.get_games_from_file(file))
 
+        return game_list
+
+    def get_sorted_game_list(self):
+        game_list = self.get_game_list()
         game_list.sort(key=lambda game: (game['title']))
 
         return game_list
@@ -60,6 +69,7 @@ class InsteadManager(object):
         game_list_unsorted = []
         for game in xml_game_list:
             # TODO: make iteration for fields
+            # TODO: make game as object
             title = game.getElementsByTagName("title")[0]
             name = game.getElementsByTagName("name")[0]
             version = game.getElementsByTagName("version")[0]
@@ -76,11 +86,12 @@ class InsteadManager(object):
                 'size': size.firstChild.data,
                 'descurl': descurl.firstChild.data,
                 'repository_filename': repository_filename,
+                'installed': False,
             })
 
         return game_list_unsorted
 
-    def get_sorted_local_game_list(self):
+    def get_local_game_list(self):
         files = glob.glob('%s*' % os.path.expanduser(self.games_path))
 
         local_game_list = []
@@ -91,14 +102,56 @@ class InsteadManager(object):
                 game_name = match.groups()[0]
             local_game_list.append({'name': game_name})
 
+        return local_game_list
+
+    def get_sorted_local_game_list(self):
+        local_game_list = self.get_local_game_list()
         local_game_list.sort(key=lambda game: (game['name']))
 
         return local_game_list
 
+    def get_combined_game_list(self):
+        try:
+            game_list = self.get_sorted_game_list()
+        except Exception:
+            game_list = []
+
+        local_game_list = self.get_sorted_local_game_list()
+
+        local_game_names = []
+        for local_game in local_game_list:
+            local_game_names.append(local_game['name'])
+
+        # Search installed games
+        for game in game_list:
+            if game['name'] in local_game_names:
+                game['installed'] = True
+                local_game_names.remove(game['name'])
+            else:
+                game['installed'] = False
+
+        # Local games which are missing in repositories
+        for local_game_name in local_game_names:
+            game_list.append({
+                'title': local_game_name,
+                'name': local_game_name,
+                'version': '',
+                'lang': '',
+                'url': '',
+                'size': 0,
+                'descurl': '',
+                'repository_filename': '',
+                'installed': True,
+            })
+
+        game_list.sort(key=lambda game: (game['title']))
+
+        return game_list
+
     def get_gamelist_repositories(self, game_list):
         repositories = []
         for game in game_list:
-            if game['repository_filename'] not in repositories:
+            if game['repository_filename'] and game['repository_filename'] not in repositories:
                 repositories.append(game['repository_filename'])
 
         return repositories
@@ -106,7 +159,7 @@ class InsteadManager(object):
     def get_gamelist_langs(self, game_list):
         langs = []
         for game in game_list:
-            if game['lang'] not in langs:
+            if game['lang'] and game['lang'] not in langs:
                 langs.append(game['lang'])
 
         return langs
@@ -142,16 +195,20 @@ class InsteadManager(object):
         return filtered_game_list
 
     def update_repositories(self, download_status_callback=None, begin_repository_downloading_callback=None,
-                            end_downloading=None):
+                            end_downloading_callback=None):
         for repository in self.repositories:
             if begin_repository_downloading_callback:
                 begin_repository_downloading_callback(repository)
 
             filename = os.path.join(self.base_path, 'repositories', repository['name']+'.xml')
-            urllib.request.urlretrieve(repository['url'], filename, download_status_callback)
 
-        if end_downloading:
-            end_downloading()
+            try:
+                urllib.request.urlretrieve(repository['url'], filename, download_status_callback)
+            except Exception:
+                pass
+
+        if end_downloading_callback:
+            end_downloading_callback()
 
         return True
 
