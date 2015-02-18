@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 __title__ = 'instead-manager-tk'
-__version__ = "0.10"
+__version__ = "0.11"
 __author__ = "Evgeniy Efremov aka jhekasoft"
 __email__ = "jhekasoft@gmail.com"
 
@@ -34,7 +34,7 @@ class InsteadManagerTk(object):
 
     def list_action(self):
         try:
-            game_list = self.instead_manager.get_combined_game_list()
+            game_list = self.instead_manager.get_sorted_combined_game_list()
         except RepositoryFilesAreMissingError:
             return
 
@@ -169,13 +169,13 @@ class InsteadManagerTk(object):
 
     def change_game_buttons_state(self, installed):
         if installed:
-            buttonGamePlay.state(['!disabled'])
-            buttonGameDelete.state(['!disabled'])
-            buttonGameInstall.state(['disabled'])
+            buttonGamePlay.pack()
+            buttonGameDelete.pack()
+            buttonGameInstall.pack_forget()
         else:
-            buttonGamePlay.state(['disabled'])
-            buttonGameDelete.state(['disabled'])
-            buttonGameInstall.state(['!disabled'])
+            buttonGamePlay.pack_forget()
+            buttonGameDelete.pack_forget()
+            buttonGameInstall.pack()
 
 if __name__ == "__main__":
     base_path = os.path.dirname(os.path.realpath(__file__))
@@ -233,16 +233,16 @@ if __name__ == "__main__":
     labelGameTitle = ttk.Label(frame, text='')
     labelGameRepository = ttk.Label(frame, text='')
     labelGameVersion = ttk.Label(frame, text='')
-    buttonGamePlay = ttk.Button(frame, text="Play", state="disabled", command=instead_manager_tk.run_game_action)
-    buttonGameDelete = ttk.Button(frame, text="Delete", state="disabled", command=instead_manager_tk.delete_game_action)
-    buttonGameInstall = ttk.Button(frame, text="Install", state="disabled", command=instead_manager_tk.install_game_action)
+    buttonGamePlay = ttk.Button(frame, text="Play", command=instead_manager_tk.run_game_action)
+    buttonGameDelete = ttk.Button(frame, text="Delete", command=instead_manager_tk.delete_game_action)
+    buttonGameInstall = ttk.Button(frame, text="Install", command=instead_manager_tk.install_game_action)
 
     labelGameTitle.pack()
     labelGameRepository.pack()
     labelGameVersion.pack()
-    buttonGamePlay.pack()
-    buttonGameDelete.pack()
-    buttonGameInstall.pack()
+    # buttonGamePlay.pack()
+    # buttonGameDelete.pack()
+    # buttonGameInstall.pack()
 
     treeGameList = ttk.Treeview(content, columns=('title', 'lang', 'version', 'size', 'repository'), show='headings')
     treeGameList.column("title", width=350)

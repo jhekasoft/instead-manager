@@ -13,19 +13,44 @@ import json
 
 
 class InsteadManager(object):
+    skeleton_filename = 'instead-manager-settings.json'
+    default_config_path = '~/.instead/manager/'
     default_config_filename = 'instead-manager-settings.json'
     run_game_command_postfix = ' &>/dev/null'
 
     def __init__(self, base_path, games_path=None, interpreter_command=None, repositories=None):
         self.base_path = base_path
 
+        # Config path
+        self.config_path = self.base_path
+        if not os.path.isfile(os.path.join(self.config_path, self.default_config_filename)):
+            self.config_path = os.path.expanduser(self.default_config_path)
+        self.check_and_create_path(self.config_path)
+        self.config_filepath = os.path.join(self.config_path, self.default_config_filename)
+
+        if not os.path.isfile(os.path.join(self.config_path, self.default_config_filename)):
+            shutil.copyfile(os.path.join(self.base_path, 'skeleton', self.skeleton_filename), self.config_filepath)
+
         if None in (games_path, interpreter_command, repositories):
             settings = self.read_settings()
 
-        self.games_path = games_path if games_path else settings['games_path']
+        self.games_path = os.path.expanduser(games_path if games_path else settings['games_path'])
         self.interpreter_command = interpreter_command if interpreter_command else settings['interpreter_command']
+
+        # Repositories
         self.repositories = repositories if repositories else settings['repositories']
-        self.repositories_directory = '%s/repositories/' % self.base_path
+        self.repositories_directory = os.path.join(self.config_path, 'repositories')
+        self.check_and_create_path(self.repositories_directory)
+
+        # Temp downloaded game path
+        self.tmp_game_path = os.path.join(self.config_path, 'games')
+        self.check_and_create_path(self.tmp_game_path)
+
+    def check_and_create_path(self, path):
+        if not os.path.isdir(path):
+            return os.makedirs(path)
+
+        return True
 
     def read_settings(self):
         """
@@ -33,7 +58,7 @@ class InsteadManager(object):
 
         :return:
         """
-        json_settings_data = open(os.path.join(self.base_path, self.default_config_filename))
+        json_settings_data = open(self.config_filepath)
 
         return json.load(json_settings_data)
 
@@ -111,7 +136,7 @@ class InsteadManager(object):
 
 
     def get_local_game_list(self):
-        files = glob.glob('%s*' % os.path.expanduser(self.games_path))
+        files = glob.glob('%s*' % self.games_path)
 
         local_game_list = []
         for file in files:
@@ -141,19 +166,22 @@ class InsteadManager(object):
         for local_game in local_game_list:
             local_game_names.append(local_game['name'])
 
+        only_local_game_names = local_game_names[:]
+
         # Search installed games
         for game in game_list:
             if game['name'] in local_game_names:
                 game['installed'] = True
-                local_game_names.remove(game['name'])
+                if game['name'] in only_local_game_names:
+                    only_local_game_names.remove(game['name'])
             else:
                 game['installed'] = False
 
         # Local games which are missing in repositories
-        for local_game_name in local_game_names:
+        for only_local_game_name in only_local_game_names:
             game_list.append({
-                'title': local_game_name,
-                'name': local_game_name,
+                'title': only_local_game_name,
+                'name': only_local_game_name,
                 'version': '',
                 'langs': [],
                 'lang': '',
@@ -164,6 +192,10 @@ class InsteadManager(object):
                 'installed': True,
             })
 
+        return game_list
+
+    def get_sorted_combined_game_list(self):
+        game_list = self.get_combined_game_list()
         game_list.sort(key=lambda game: (game['title']))
 
         return game_list
@@ -222,7 +254,7 @@ class InsteadManager(object):
             if begin_repository_downloading_callback:
                 begin_repository_downloading_callback(repository)
 
-            filename = os.path.join(self.base_path, 'repositories', repository['name']+'.xml')
+            filename = os.path.join(self.repositories_directory, repository['name']+'.xml')
 
             try:
                 urllib.request.urlretrieve(repository['url'], filename, download_status_callback)
@@ -242,12 +274,11 @@ class InsteadManager(object):
         if begin_downloading_callback:
             begin_downloading_callback(game)
 
-        tmp_game_path = os.path.join(self.base_path, 'games')
-        game_tmp_filename = os.path.join(tmp_game_path, 'tmp_'+game['name']+'.part')
+        game_tmp_filename = os.path.join(self.tmp_game_path, 'tmp_'+game['name']+'.part')
         result = urllib.request.urlretrieve(game['url'], game_tmp_filename, download_status_callback)
 
         base_game_filename = self.get_response_filename(result[1], game['url'])
-        game_filename = '%s%s' % (tmp_game_path, base_game_filename)
+        game_filename = '%s%s' % (self.tmp_game_path, base_game_filename)
 
         # Copying game to the file with normal name
         shutil.copy(game_tmp_filename, game_filename)
@@ -290,7 +321,7 @@ class InsteadManager(object):
         running_name = name
 
         # IDF check
-        files = glob.glob('%s%s.idf' % (os.path.expanduser(self.games_path), name))
+        files = glob.glob('%s%s.idf' % (self.games_path, name))
         if len(files) > 0:
             running_name = running_name+'.idf'
 
@@ -299,8 +330,8 @@ class InsteadManager(object):
         return True
 
     def delete_game(self, name):
-        game_folder_path = os.path.expanduser(self.games_path) + name
-        game_idf_path = os.path.expanduser(self.games_path) + name + '.idf'
+        game_folder_path = self.games_path + name
+        game_idf_path = self.games_path + name + '.idf'
         if os.path.exists(game_folder_path):
             shutil.rmtree(game_folder_path)
             return True
@@ -332,7 +363,8 @@ class InsteadManager(object):
 
 
 class WinInsteadManager(InsteadManager):
-    default_config_filename = 'instead-manager-settings-win.json'
+    skeleton_filename = 'instead-manager-settings-win.json'
+    default_config_path = '~\\Local Settings\\Application Data\\instead\\manager\\'
     run_game_command_postfix = ''
 
 
