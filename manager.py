@@ -73,15 +73,16 @@ class InsteadManager(object):
             title = game.getElementsByTagName("title")[0]
             name = game.getElementsByTagName("name")[0]
             version = game.getElementsByTagName("version")[0]
-            lang = game.getElementsByTagName("lang")[0]
             url = game.getElementsByTagName("url")[0]
             size = game.getElementsByTagName("size")[0]
             descurl = game.getElementsByTagName("descurl")[0]
+            langs = self.xml_game_parse_languages(game)
             game_list_unsorted.append({
                 'title': title.firstChild.data,
                 'name': name.firstChild.data,
                 'version': version.firstChild.data,
-                'lang': lang.firstChild.data,
+                'langs': self.xml_game_parse_languages(game),
+                'lang': ', '.join(langs),
                 'url': url.firstChild.data,
                 'size': size.firstChild.data,
                 'descurl': descurl.firstChild.data,
@@ -90,6 +91,24 @@ class InsteadManager(object):
             })
 
         return game_list_unsorted
+
+    def xml_game_parse_languages(self, game):
+        raw_langs = []
+
+        langs_elements = game.getElementsByTagName("langs")
+        if langs_elements:
+            # format: <langs><lang>en</lang><lang>ru</lang></langs>
+            lang_elements = langs_elements[0].getElementsByTagName("lang")
+            for lang_element in lang_elements:
+                raw_langs.append(lang_element.firstChild.data)
+        else:
+            # format: <lang>en,ru</lang>
+            lang_element = game.getElementsByTagName("lang")[0]
+            raw_langs = lang_element.firstChild.data.split(',')
+
+        langs = list(map(lambda lang: lang.strip(), raw_langs))
+        return langs
+
 
     def get_local_game_list(self):
         files = glob.glob('%s*' % os.path.expanduser(self.games_path))
@@ -136,6 +155,7 @@ class InsteadManager(object):
                 'title': local_game_name,
                 'name': local_game_name,
                 'version': '',
+                'langs': [],
                 'lang': '',
                 'url': '',
                 'size': 0,
@@ -159,8 +179,10 @@ class InsteadManager(object):
     def get_gamelist_langs(self, game_list):
         langs = []
         for game in game_list:
-            if game['lang'] and game['lang'] not in langs:
-                langs.append(game['lang'])
+            if game['langs']:
+                for game_lang in game['langs']:
+                    if game_lang not in langs:
+                        langs.append(game_lang)
 
         return langs
 
@@ -172,7 +194,7 @@ class InsteadManager(object):
         return game['repository_filename'] == value or game['repository_filename'] == value + '.xml'
 
     def is_found_lang(self, game, value):
-        return game['lang'] == value
+        return value in game['langs']
 
     def filter_games(self, game_list, keyword: str=None, repository: str=None, lang: str=None):
         if keyword:
