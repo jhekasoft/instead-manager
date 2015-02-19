@@ -110,24 +110,37 @@ class InsteadManagerConsole(object):
         self.print_game_list(filtered_game_list, verbose)
 
     def install_action(self, name: str, run: str, verbose: bool):
+        game = None
+
         game_list = self.get_sorted_game_list()
-        filtered_game_list = self.instead_manager.filter_games(game_list, name)
 
-        found = bool(filtered_game_list)
-        for game in filtered_game_list:
-            installed =\
-                self.instead_manager.install_game_action(game, run,
-                                                  download_status_callback=self.download_status_callback,
-                                                  begin_downloading_callback=self.begin_downloading_callback,
-                                                  begin_installation_callback=self.begin_installation_callback)
+        # Search exactly by name
+        for game_list_item in game_list:
+            if game_list_item['name'] == name:
+                game = game_list_item
 
-            if installed:
-                self.out_success('Compete', exit=True)
+        if game is None:
+            # Search exactly by title
+            for game_list_item in game_list:
+                if game_list_item['title'] == name:
+                    game = game_list_item
 
-            break
+        if game is None:
+            filtered_game_list = self.instead_manager.filter_games(game_list, name)
+            if filtered_game_list and len(filtered_game_list) > 0:
+                game = filtered_game_list[0]
 
-        if not found:
+        if game is None:
             self.out_fail('Game has not found', exit=True)
+
+        installed =\
+            self.instead_manager.install_game(game, run,
+                                              download_status_callback=self.download_status_callback,
+                                              begin_downloading_callback=self.begin_downloading_callback,
+                                              begin_installation_callback=self.begin_installation_callback)
+
+        if installed:
+            self.out_success('Compete', exit=True)
 
         self.out_fail('Game has not been installed', exit=True)
 
