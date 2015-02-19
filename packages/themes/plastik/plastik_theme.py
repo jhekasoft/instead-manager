@@ -28,7 +28,7 @@ try:
 except:
     from tkinter import PhotoImage
 
-import tkinter.ttk as ttk
+from tkinter import ttk
 
 __all__ = ['install']
 
@@ -36,7 +36,8 @@ colors = {
     "frame": "#efefef",
     "disabledfg": "#aaaaaa",
     "selectbg": "#657a9e",
-    "selectfg": "#ffffff"
+    "selectfg": "#ffffff",
+    "listbg": "#ffffff"
     }
 
 imgs = {}
@@ -131,7 +132,13 @@ def install(imgdir):
             "configure": {"padding": [6, 2, 6, 2], "expand": [0, 0, 2]},
             "map": {"expand": [("selected", [1, 2, 4, 2])]}
         },
-        "Treeview": {"configure": {"padding": 0}},
+        "Treeview": {
+            "configure": {"padding": 0, "background": colors['listbg']},
+            "map": {
+                "background": [("selected", colors['selectbg'])],
+                "foreground": [("selected", colors['selectfg'])]
+            }
+        },
 
         # elements
         "Button.button": {"element create":
