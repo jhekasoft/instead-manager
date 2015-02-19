@@ -63,10 +63,8 @@ class InsteadManagerTk(object):
                 tags = 'installed'
             item = treeGameList.insert("", 'end', text=game_list_item['name'], values=(
                 game_list_item['title'],
-                game_list_item['lang'],
                 game_list_item['version'],
-                self.instead_manager.size_format(int(game_list_item['size'])),
-                game_list_item['repository_filename']
+                self.instead_manager.size_format(int(game_list_item['size']))
             ), tags=tags)
             self.gui_game_list[item] = game_list_item
 
@@ -179,6 +177,14 @@ if __name__ == "__main__":
     instead_manager_tk = InsteadManagerTk(instead_manager)
 
     root = Tk(className='INSTEAD Manager')
+
+    import packages.themes.plastik.plastik_theme as plastik_theme
+    try:
+        plastik_theme.install(os.path.join(instead_manager_tk.instead_manager.base_path, 'packages', 'themes', 'plastik', 'plastik'))
+    except Exception:
+        import warnings
+        warnings.warn("plastik theme being used without images")
+
     # Window title
     root.title("INSTEAD Manager " + __version__)
     # Window icon
@@ -190,7 +196,7 @@ if __name__ == "__main__":
 
     content = ttk.Frame(root)
 
-    frameFilter = ttk.Frame(content, borderwidth=1, relief="sunken", width=200, height=100)
+    frameFilter = ttk.Frame(content, borderwidth=0, relief="flat", width=200, height=100)
     gui_keyword = StringVar()
     gui_repository = StringVar()
     gui_lang = StringVar()
@@ -219,7 +225,7 @@ if __name__ == "__main__":
     optionMenuLang = ttk.OptionMenu(frameFilter, variable=gui_lang)
     optionMenuLang.pack(side=LEFT)
 
-    frame = ttk.Frame(content, borderwidth=1, relief="sunken", width=200, height=100)
+    frame = ttk.Frame(content, borderwidth=0, relief="flat", width=200, height=100)
 
     labelGameTitle = ttk.Label(frame, text='')
     labelGameRepository = ttk.Label(frame, text='')
@@ -235,27 +241,35 @@ if __name__ == "__main__":
     # buttonGameDelete.pack()
     # buttonGameInstall.pack()
 
-    treeGameList = ttk.Treeview(content, columns=('title', 'lang', 'version', 'size', 'repository'), show='headings')
+    container = ttk.Frame(content)
+    #container.pack(fill='both', expand=True)
+    treeGameList = ttk.Treeview(columns=('title', 'version', 'size'), selectmode='browse', show='headings')
     treeGameList.column("title", width=350)
-    treeGameList.column("lang", width=50)
+    #treeGameList.column("lang", width=50)
     treeGameList.column("version", width=70)
     treeGameList.column("size", width=70)
-    treeGameList.column("repository", width=220)
+    #treeGameList.column("repository", width=220)
     treeGameList.heading("title", text="Title")
-    treeGameList.heading("lang", text="Lang", command=lambda: print('lang'))
+    #treeGameList.heading("lang", text="Lang", command=lambda: print('lang'))
     treeGameList.heading("version", text="Version")
     treeGameList.heading("size", text="Size")
-    treeGameList.heading("repository", text="Repository")
+    #treeGameList.heading("repository", text="Repository")
     treeGameList.tag_configure('installed', background='#dfd')
     treeGameList.bind("<Double-1>", instead_manager_tk.on_game_list_double_click)
     treeGameList.bind('<<TreeviewSelect>>', instead_manager_tk.on_game_select)
     # treeGameList.pack()
+    vsb = ttk.Scrollbar(orient="vertical", command=treeGameList.yview)
+    treeGameList.configure(yscrollcommand=vsb.set)
+    treeGameList.grid(column=0, row=0, sticky='nsew', in_=container)
+    vsb.grid(column=1, row=0, sticky='ns', in_=container)
+    container.grid_columnconfigure(0, weight=1)
+    container.grid_rowconfigure(0, weight=1)
 
-    buttonUpdateRepository = ttk.Button(content, text=instead_manager_tk.gui_messages['update_repo'], command=instead_manager_tk.update_and_list_action)
+    buttonUpdateRepository = ttk.Button(content, text=instead_manager_tk.gui_messages['update_repo'], command=instead_manager_tk.update_and_list_action, width=40)
 
     content.grid(column=0, row=0)
     frameFilter.grid(column=0, row=0, columnspan=3, rowspan=1)
-    treeGameList.grid(column=0, row=1, columnspan=3, rowspan=2)
+    container.grid(column=0, row=1, columnspan=3, rowspan=2)
     frame.grid(column=4, row=1, columnspan=3, rowspan=2)
     buttonUpdateRepository.grid(column=0, row=3)
 
@@ -268,7 +282,7 @@ if __name__ == "__main__":
     # s.map('TButton', background=[('hover', '#eeeeff'), ('focus', 'orange')])
     # s.configure('TCombobox', background='#5555ff', foreground='#3333ff', font=('Sans', 18))
 
-    #buttonUpdateRepository.pack()
+    # buttonUpdateRepository.pack()
 
     root.wait_visibility()
     instead_manager_tk.check_repositories_action()
