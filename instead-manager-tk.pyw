@@ -10,6 +10,7 @@ import os
 from threading import Thread
 from tkinter import *
 import tkinter.ttk as ttk
+import tkinter.font as font
 from manager import InsteadManager, WinInsteadManager, InsteadManagerHelper, RepositoryFilesAreMissingError
 
 
@@ -194,7 +195,7 @@ if __name__ == "__main__":
     # print(style.theme_names())
     # style.theme_use('clam')
 
-    content = ttk.Frame(root)
+    content = ttk.Frame(root, padding=(5, 5, 5, 5))
 
     frameFilter = ttk.Frame(content, borderwidth=0, relief="flat", width=200, height=100)
     gui_keyword = StringVar()
@@ -241,9 +242,9 @@ if __name__ == "__main__":
     # buttonGameDelete.pack()
     # buttonGameInstall.pack()
 
-    container = ttk.Frame(content)
+    container = ttk.Frame(content, padding=(0, 5, 0, 5))
     #container.pack(fill='both', expand=True)
-    treeGameList = ttk.Treeview(columns=('title', 'version', 'size'), selectmode='browse', show='headings')
+    treeGameList = ttk.Treeview(container, columns=('title', 'version', 'size'), selectmode='browse', show='headings')
     treeGameList.column("title", width=350)
     #treeGameList.column("lang", width=50)
     treeGameList.column("version", width=70)
@@ -254,24 +255,27 @@ if __name__ == "__main__":
     treeGameList.heading("version", text="Version")
     treeGameList.heading("size", text="Size")
     #treeGameList.heading("repository", text="Repository")
-    treeGameList.tag_configure('installed', background='#dfd')
+    # installed_font = font.Font(font=labelGameTitle.cget("font")).copy()
+    # installed_font.config(weight=font.BOLD)
+    treeGameList.tag_configure('installed', background='#f0f0f0')
     treeGameList.bind("<Double-1>", instead_manager_tk.on_game_list_double_click)
     treeGameList.bind('<<TreeviewSelect>>', instead_manager_tk.on_game_select)
     # treeGameList.pack()
     vsb = ttk.Scrollbar(orient="vertical", command=treeGameList.yview)
     treeGameList.configure(yscrollcommand=vsb.set)
-    treeGameList.grid(column=0, row=0, sticky='nsew', in_=container)
+    treeGameList.grid(column=0, row=0, sticky=(N, S, E, W))
     vsb.grid(column=1, row=0, sticky='ns', in_=container)
     container.grid_columnconfigure(0, weight=1)
     container.grid_rowconfigure(0, weight=1)
 
     buttonUpdateRepository = ttk.Button(content, text=instead_manager_tk.gui_messages['update_repo'], command=instead_manager_tk.update_and_list_action, width=40)
 
-    content.grid(column=0, row=0)
-    frameFilter.grid(column=0, row=0, columnspan=3, rowspan=1)
-    container.grid(column=0, row=1, columnspan=3, rowspan=2)
-    frame.grid(column=4, row=1, columnspan=3, rowspan=2)
-    buttonUpdateRepository.grid(column=0, row=3)
+    #content.grid(column=0, row=0, sticky=(N, S, E, W))
+    content.pack(fill='both', expand=True)
+    frameFilter.grid(column=0, row=0, sticky=(N, S, E, W))
+    container.grid(column=0, row=1, columnspan=3, rowspan=1, sticky=(N, S, E, W))
+    frame.grid(column=4, row=0, columnspan=3, rowspan=2, sticky=(N, S, E, W))
+    buttonUpdateRepository.grid(column=0, row=3, sticky=(N, S, E, W))
 
     # Style Sheet
     # s = ttk.Style()
@@ -283,6 +287,9 @@ if __name__ == "__main__":
     # s.configure('TCombobox', background='#5555ff', foreground='#3333ff', font=('Sans', 18))
 
     # buttonUpdateRepository.pack()
+
+    # root.columnconfigure(0, weight=1)
+    # root.rowconfigure(0, weight=1)
 
     root.wait_visibility()
     instead_manager_tk.check_repositories_action()
