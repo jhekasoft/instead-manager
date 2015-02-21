@@ -3,6 +3,7 @@ __email__ = "jhekasoft@gmail.com"
 
 import os
 import platform
+import sys
 import glob
 import shutil
 import subprocess
@@ -381,6 +382,10 @@ class InsteadManagerHelper(object):
     @staticmethod
     def is_win():
         return any(platform.win32_ver())
+
+    @staticmethod
+    def is_unix():
+        return sys.platform.startswith('linux') or sys.platform.startswith('freebsd')
 
 
 class RepositoryFilesAreMissingError(Exception):

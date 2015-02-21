@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 __title__ = 'instead-manager-tk'
-__version__ = "0.11"
+__version__ = "0.12"
 __author__ = "Evgeniy Efremov aka jhekasoft"
 __email__ = "jhekasoft@gmail.com"
 
@@ -39,14 +39,17 @@ class InsteadManagerTk(object):
         except RepositoryFilesAreMissingError:
             return
 
+        gui_repository = comboboxRepository.get()
+        gui_lang = comboboxLang.get()
+
         repositories = [''] + self.instead_manager.get_gamelist_repositories(game_list)
-        optionMenuRepository.set_menu(None, *repositories)
+        comboboxRepository['values'] = repositories
 
         langs = [''] + self.instead_manager.get_gamelist_langs(game_list)
-        optionMenuLang.set_menu(None, *langs)
+        comboboxLang['values'] = langs
 
-        if gui_keyword.get() or gui_repository.get() or gui_lang.get():
-            game_list = self.instead_manager.filter_games(game_list, gui_keyword.get(), gui_repository.get(), gui_lang.get())
+        if gui_keyword.get() or gui_repository or gui_lang:
+            game_list = self.instead_manager.filter_games(game_list, gui_keyword.get(), gui_repository, gui_lang)
 
         # Clear list
         # map(lambda x: print(x), treeRepositoryList.get_children())
@@ -179,40 +182,35 @@ if __name__ == "__main__":
 
     root = Tk(className='INSTEAD Manager')
 
-    import packages.themes.plastik.plastik_theme as plastik_theme
-    try:
-        plastik_theme.install(os.path.join(instead_manager_tk.instead_manager.base_path, 'packages', 'themes', 'plastik', 'plastik'))
-    except Exception:
-        import warnings
-        warnings.warn("plastik theme being used without images")
+    # ttk theme for UNIX-like systems
+    if InsteadManagerHelper.is_unix():
+        import packages.ttk_themes.plastik.plastik_theme as plastik_theme
+        try:
+            plastik_theme.install(os.path.join(instead_manager_tk.instead_manager.base_path, 'packages', 'ttk_themes', 'plastik', 'plastik'))
+        except Exception:
+            import warnings
+            warnings.warn("plastik theme being used without images")
 
     # Window title
     root.title("INSTEAD Manager " + __version__)
     # Window icon
-    root.iconphoto(True, PhotoImage(file=os.path.join(base_path, 'resources', 'images', 'logo.png')))
-
-    # style = ttk.Style()
-    # print(style.theme_names())
-    # style.theme_use('clam')
+    managerLogo = PhotoImage(file=os.path.join(base_path, 'resources', 'images', 'logo.png'))
+    root.iconphoto(True, managerLogo)
 
     content = ttk.Frame(root, padding=(5, 5, 5, 5))
 
     frameFilter = ttk.Frame(content, borderwidth=0, relief="flat", width=200, height=100)
     gui_keyword = StringVar()
-    gui_repository = StringVar()
-    gui_lang = StringVar()
     def gui_keyword_change(a, b, c):
         instead_manager_tk.list_action()
         entryKeyword.update_idletasks()
     gui_keyword.trace('w', gui_keyword_change)
 
-    def gui_repository_change(a, b, c):
+    def gui_repository_change(widget):
         instead_manager_tk.list_action()
-    gui_repository.trace('w', gui_repository_change)
 
-    def gui_lang_change(a, b, c):
+    def gui_lang_change(widget):
         instead_manager_tk.list_action()
-    gui_lang.trace('w', gui_lang_change)
 
     # TODO: move global vars to the GUI class
 
@@ -220,14 +218,17 @@ if __name__ == "__main__":
     entryKeyword = ttk.Entry(frameFilter, textvariable=gui_keyword)
     entryKeyword.pack(side=LEFT)
 
-    optionMenuRepository = ttk.OptionMenu(frameFilter, variable=gui_repository)
-    optionMenuRepository.pack(side=LEFT)
+    comboboxRepository = ttk.Combobox(frameFilter, state="readonly")
+    comboboxRepository.bind("<<ComboboxSelected>>", gui_repository_change)
+    comboboxRepository.pack(side=LEFT, padx=5)
 
-    optionMenuLang = ttk.OptionMenu(frameFilter, variable=gui_lang)
-    optionMenuLang.pack(side=LEFT)
+    comboboxLang = ttk.Combobox(frameFilter, state="readonly")
+    comboboxLang.bind("<<ComboboxSelected>>", gui_lang_change)
+    comboboxLang.pack(side=LEFT)
 
-    frame = ttk.Frame(content, borderwidth=0, relief="flat", width=200, height=100)
+    frame = ttk.Frame(content, borderwidth=0, relief="flat", width=200, height=100, padding=(5, 0, 0, 0))
 
+    managerLogoFrame = ttk.Button(frame, image=managerLogo)
     labelGameTitle = ttk.Label(frame, text='')
     labelGameRepository = ttk.Label(frame, text='')
     labelGameVersion = ttk.Label(frame, text='')
@@ -235,16 +236,14 @@ if __name__ == "__main__":
     buttonGameDelete = ttk.Button(frame, text="Delete", command=instead_manager_tk.delete_game_action)
     buttonGameInstall = ttk.Button(frame, text="Install", command=instead_manager_tk.install_game_action)
 
+    managerLogoFrame.pack()
     labelGameTitle.pack()
     labelGameRepository.pack()
     labelGameVersion.pack()
-    # buttonGamePlay.pack()
-    # buttonGameDelete.pack()
-    # buttonGameInstall.pack()
 
     container = ttk.Frame(content, padding=(0, 5, 0, 5))
     #container.pack(fill='both', expand=True)
-    treeGameList = ttk.Treeview(container, columns=('title', 'version', 'size'), selectmode='browse', show='headings')
+    treeGameList = ttk.Treeview(container, columns=('title', 'version', 'size'), selectmode='browse', show='headings', height=14)
     treeGameList.column("title", width=350)
     #treeGameList.column("lang", width=50)
     treeGameList.column("version", width=70)
@@ -260,7 +259,6 @@ if __name__ == "__main__":
     treeGameList.tag_configure('installed', background='#f0f0f0')
     treeGameList.bind("<Double-1>", instead_manager_tk.on_game_list_double_click)
     treeGameList.bind('<<TreeviewSelect>>', instead_manager_tk.on_game_select)
-    # treeGameList.pack()
     vsb = ttk.Scrollbar(orient="vertical", command=treeGameList.yview)
     treeGameList.configure(yscrollcommand=vsb.set)
     treeGameList.grid(column=0, row=0, sticky=(N, S, E, W))
@@ -270,26 +268,11 @@ if __name__ == "__main__":
 
     buttonUpdateRepository = ttk.Button(content, text=instead_manager_tk.gui_messages['update_repo'], command=instead_manager_tk.update_and_list_action, width=40)
 
-    #content.grid(column=0, row=0, sticky=(N, S, E, W))
     content.pack(fill='both', expand=True)
     frameFilter.grid(column=0, row=0, sticky=(N, S, E, W))
     container.grid(column=0, row=1, columnspan=3, rowspan=1, sticky=(N, S, E, W))
     frame.grid(column=4, row=0, columnspan=3, rowspan=2, sticky=(N, S, E, W))
     buttonUpdateRepository.grid(column=0, row=3, sticky=(N, S, E, W))
-
-    # Style Sheet
-    # s = ttk.Style()
-    # s.configure('TFrame', background='#5555ff')
-    # s.configure('TButton', background='blue', foreground='#eeeeff', font=('Sans', '14', 'bold'), sticky=EW)
-    # s.configure('TLabel', font=('Sans', '16', 'bold'), background='#5555ff', foreground='#eeeeff')
-    # s.map('TButton', foreground=[('hover', '#5555ff'), ('focus', 'yellow')])
-    # s.map('TButton', background=[('hover', '#eeeeff'), ('focus', 'orange')])
-    # s.configure('TCombobox', background='#5555ff', foreground='#3333ff', font=('Sans', 18))
-
-    # buttonUpdateRepository.pack()
-
-    # root.columnconfigure(0, weight=1)
-    # root.rowconfigure(0, weight=1)
 
     root.wait_visibility()
     instead_manager_tk.check_repositories_action()
