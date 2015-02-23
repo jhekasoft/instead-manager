@@ -208,7 +208,10 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    base_path = os.path.dirname(os.path.realpath(__file__))
+    try:
+        base_path = os.path.dirname(os.path.realpath(__file__))
+    except NameError:
+        base_path = os.path.dirname(os.path.abspath(sys.argv[0]))
 
     if InsteadManagerHelper.is_win():
         instead_manager = WinInsteadManager(base_path)

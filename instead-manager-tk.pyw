@@ -7,6 +7,7 @@ __author__ = "Evgeniy Efremov aka jhekasoft"
 __email__ = "jhekasoft@gmail.com"
 
 import os
+import sys
 from threading import Thread
 from tkinter import *
 import tkinter.ttk as ttk
@@ -171,7 +172,10 @@ class InsteadManagerTk(object):
             buttonGameInstall.pack()
 
 if __name__ == "__main__":
-    base_path = os.path.dirname(os.path.realpath(__file__))
+    try:
+        base_path = os.path.dirname(os.path.realpath(__file__))
+    except NameError:
+        base_path = os.path.dirname(os.path.abspath(sys.argv[0]))
 
     if InsteadManagerHelper.is_win():
         instead_manager = WinInsteadManager(base_path)
