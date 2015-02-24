@@ -152,7 +152,7 @@ class InsteadManagerConsole(object):
     def run_action(self, name: str):
         self.out('Running %s ...' % name)
 
-        run = self.instead_manager.run_game_action(name)
+        run = self.instead_manager.run_game(name)
 
         if not run:
             self.out_fail("Game hasn't run", exit=True)
