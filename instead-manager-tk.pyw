@@ -240,6 +240,10 @@ if __name__ == "__main__":
     buttonGameDelete = ttk.Button(frame, text="Delete", command=instead_manager_tk.delete_game_action)
     buttonGameInstall = ttk.Button(frame, text="Install", command=instead_manager_tk.install_game_action)
 
+    filterImage = PhotoImage(file=os.path.join(base_path, 'resources', 'images', 'icons', 'gnome', 'find.png'))
+    filterButton = ttk.Button(frame, style='Toolbutton', image=filterImage, width=100)
+    filterButton.pack()
+
     managerLogoFrame.pack()
     labelGameTitle.pack()
     labelGameRepository.pack()
