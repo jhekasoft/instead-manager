@@ -181,6 +181,7 @@ if __name__ == "__main__":
     instead_manager_tk = InsteadManagerTk(instead_manager)
 
     root = Tk(className='INSTEAD Manager')
+    root.resizable(width=FALSE, height=FALSE)
 
     # ttk theme for UNIX-like systems
     if InsteadManagerHelper.is_unix():
