@@ -369,6 +369,10 @@ class WinInsteadManager(InsteadManager):
     run_game_command_postfix = ''
 
 
+class MacInsteadManager(InsteadManager):
+    skeleton_filename = 'instead-manager-settings-mac.json'
+
+
 class InsteadManagerHelper(object):
     @staticmethod
     def size_format(size):
@@ -384,8 +388,12 @@ class InsteadManagerHelper(object):
         return any(platform.win32_ver())
 
     @staticmethod
-    def is_unix():
+    def is_free_unix():
         return sys.platform.startswith('linux') or sys.platform.startswith('freebsd')
+
+    @staticmethod
+    def is_mac():
+        return any(platform.mac_ver())
 
 
 class RepositoryFilesAreMissingError(Exception):

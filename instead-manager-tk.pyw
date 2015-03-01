@@ -12,7 +12,7 @@ from threading import Thread
 from tkinter import *
 import tkinter.ttk as ttk
 import tkinter.font as font
-from manager import InsteadManager, WinInsteadManager, InsteadManagerHelper, RepositoryFilesAreMissingError
+from manager import InsteadManager, WinInsteadManager, MacInsteadManager, InsteadManagerHelper, RepositoryFilesAreMissingError
 
 
 class InsteadManagerTk(object):
@@ -179,6 +179,8 @@ if __name__ == "__main__":
 
     if InsteadManagerHelper.is_win():
         instead_manager = WinInsteadManager(base_path)
+    elif InsteadManagerHelper.is_mac():
+        instead_manager = MacInsteadManager(base_path)
     else:
         instead_manager = InsteadManager(base_path)
 
@@ -188,7 +190,7 @@ if __name__ == "__main__":
     root.resizable(width=FALSE, height=FALSE)
 
     # ttk theme for UNIX-like systems
-    if InsteadManagerHelper.is_unix():
+    if InsteadManagerHelper.is_free_unix():
         import packages.ttk_themes.plastik.plastik_theme as plastik_theme
         try:
             plastik_theme.install(os.path.join(instead_manager_tk.instead_manager.base_path, 'packages', 'ttk_themes', 'plastik', 'plastik'))
@@ -199,7 +201,7 @@ if __name__ == "__main__":
     # Window title
     root.title("INSTEAD Manager " + __version__)
     # Window icon
-    managerLogo = PhotoImage(file=os.path.join(base_path, 'resources', 'images', 'logo.png'))
+    managerLogo = PhotoImage(file=os.path.join(base_path, 'resources', 'images', 'logo.gif'))
     root.iconphoto(True, managerLogo)
 
     content = ttk.Frame(root, padding=(5, 5, 5, 5))
@@ -241,9 +243,9 @@ if __name__ == "__main__":
     buttonGameDelete = ttk.Button(frame, text="Delete", command=instead_manager_tk.delete_game_action)
     buttonGameInstall = ttk.Button(frame, text="Install", command=instead_manager_tk.install_game_action)
 
-    filterImage = PhotoImage(file=os.path.join(base_path, 'resources', 'images', 'icons', 'gnome', 'find.png'))
-    filterButton = ttk.Button(frame, style='Toolbutton', image=filterImage, width=100)
-    filterButton.pack()
+    # filterImage = PhotoImage(file=os.path.join(base_path, 'resources', 'images', 'icons', 'gnome', 'find.png'))
+    # filterButton = ttk.Button(frame, style='Toolbutton', image=filterImage, width=100)
+    # filterButton.pack()
 
     managerLogoFrame.pack()
     labelGameTitle.pack()
