@@ -7,11 +7,11 @@ __author__ = "Evgeniy Efremov aka jhekasoft"
 __email__ = "jhekasoft@gmail.com"
 
 import os
-import sys
 from threading import Thread
 from tkinter import *
 import tkinter.ttk as ttk
 import tkinter.font as font
+import webbrowser
 from manager import InsteadManager, WinInsteadManager, MacInsteadManager, InsteadManagerHelper, RepositoryFilesAreMissingError
 
 
@@ -26,6 +26,8 @@ class InsteadManagerTk(object):
     def __init__(self, instead_manager, root):
         self.instead_manager = instead_manager
         self.root = root
+
+        self.theme_prepare()
 
         self.root.resizable(width=FALSE, height=FALSE)
 
@@ -69,9 +71,11 @@ class InsteadManagerTk(object):
         self.labelGameTitle = ttk.Label(self.frame, text='')
         self.labelGameRepository = ttk.Label(self.frame, text='')
         self.labelGameVersion = ttk.Label(self.frame, text='')
+        self.labelGameLang = ttk.Label(self.frame, text='')
         self.buttonGamePlay = ttk.Button(self.frame, text="Play", command=self.run_game_action)
         self.buttonGameDelete = ttk.Button(self.frame, text="Delete", command=self.delete_game_action)
         self.buttonGameInstall = ttk.Button(self.frame, text="Install", command=self.install_game_action)
+        self.buttonGameOpenInfo = ttk.Button(self.frame, text="Info", command=self.game_info_page_open)
 
         # filterImage = PhotoImage(file=os.path.join(base_path, 'resources', 'images', 'icons', 'gnome', 'find.png'))
         # filterButton = ttk.Button(frame, style='Toolbutton', image=filterImage, width=100)
@@ -81,6 +85,7 @@ class InsteadManagerTk(object):
         self.labelGameTitle.pack()
         self.labelGameRepository.pack()
         self.labelGameVersion.pack()
+        self.labelGameLang.pack()
 
         self.container = ttk.Frame(self.content, padding=(0, 5, 0, 5))
         #container.pack(fill='both', expand=True)
@@ -114,6 +119,12 @@ class InsteadManagerTk(object):
         self.container.grid(column=0, row=1, columnspan=3, rowspan=1, sticky=(N, S, E, W))
         self.frame.grid(column=4, row=0, columnspan=3, rowspan=2, sticky=(N, S, E, W))
         self.buttonUpdateRepository.grid(column=0, row=3, sticky=(N, S, E, W))
+
+    def theme_prepare(self):
+        pass
+
+    def game_info_page_open(self):
+        webbrowser.open_new(self.gui_game_list[self.gui_selected_item]['descurl'])
 
     def begin_repository_downloading_callback(self, repository):
         self.buttonUpdateRepository['text'] = 'Downloading %s...' % repository['url']
@@ -223,10 +234,13 @@ class InsteadManagerTk(object):
         title = self.gui_game_list[self.gui_selected_item]['title']
         repository = self.gui_game_list[self.gui_selected_item]['repository_filename']
         version = self.gui_game_list[self.gui_selected_item]['version']
+        lang = self.gui_game_list[self.gui_selected_item]['lang']
         self.labelGameTitle.config(text=title)
         self.labelGameRepository.config(text=repository)
         self.labelGameVersion.config(text=version)
-        self.change_game_buttons_state(self.gui_game_list[self.gui_selected_item]['installed'])
+        self.labelGameLang.config(text=lang)
+        self.change_game_buttons_state(self.gui_game_list[self.gui_selected_item]['installed'],
+                                       True if self.gui_game_list[self.gui_selected_item]['descurl'] else False)
 
     def install_game_action(self):
         item = self.gui_selected_item
@@ -251,7 +265,9 @@ class InsteadManagerTk(object):
         self.instead_manager.delete_game(name)
         self.list_action()
 
-    def change_game_buttons_state(self, installed):
+    def change_game_buttons_state(self, installed, desc_url_exists=False):
+        self.buttonGameOpenInfo.pack_forget()
+
         if installed:
             self.buttonGamePlay.pack()
             self.buttonGameDelete.pack()
@@ -261,31 +277,41 @@ class InsteadManagerTk(object):
             self.buttonGameDelete.pack_forget()
             self.buttonGameInstall.pack()
 
+        if desc_url_exists:
+            self.buttonGameOpenInfo.pack()
+
+
+class FreeUnixInsteadManagerTk(InsteadManagerTk):
+    def theme_prepare(self):
+        # ttk theme for UNIX-like systems
+        import packages.ttk_themes.plastik.plastik_theme as plastik_theme
+        try:
+            plastik_theme.install(os.path.join(self.instead_manager.base_path, 'packages', 'ttk_themes', 'plastik', 'plastik'))
+        except Exception as e:
+            import warnings
+            warnings.warn("plastik theme being used without images")
+
+
 if __name__ == "__main__":
     try:
         base_path = os.path.dirname(os.path.realpath(__file__))
     except NameError:
         base_path = os.path.dirname(os.path.abspath(sys.argv[0]))
 
-    if InsteadManagerHelper.is_win():
-        instead_manager = WinInsteadManager(base_path)
-    elif InsteadManagerHelper.is_mac():
-        instead_manager = MacInsteadManager(base_path)
-    else:
-        instead_manager = InsteadManager(base_path)
-
     root = Tk(className='INSTEAD Manager')
 
-    instead_manager_tk = InsteadManagerTk(instead_manager, root)
-
-    # ttk theme for UNIX-like systems
-    if InsteadManagerHelper.is_free_unix():
-        import packages.ttk_themes.plastik.plastik_theme as plastik_theme
-        try:
-            plastik_theme.install(os.path.join(instead_manager_tk.instead_manager.base_path, 'packages', 'ttk_themes', 'plastik', 'plastik'))
-        except Exception:
-            import warnings
-            warnings.warn("plastik theme being used without images")
+    if InsteadManagerHelper.is_win():
+        instead_manager = WinInsteadManager(base_path)
+        instead_manager_tk = InsteadManagerTk(instead_manager, root)
+    elif InsteadManagerHelper.is_mac():
+        instead_manager = MacInsteadManager(base_path)
+        instead_manager_tk = InsteadManagerTk(instead_manager, root)
+    elif InsteadManagerHelper.is_free_unix():
+        instead_manager = InsteadManager(base_path)
+        instead_manager_tk = FreeUnixInsteadManagerTk(instead_manager, root)
+    else:
+        instead_manager = InsteadManager(base_path)
+        instead_manager_tk = InsteadManagerTk(instead_manager, root)
 
     root.wait_visibility()
     instead_manager_tk.check_repositories_action()
