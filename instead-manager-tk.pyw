@@ -2,7 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 __title__ = 'instead-manager-tk'
-__version__ = "0.12"
+__version__ = "0.13"
 __author__ = "Evgeniy Efremov aka jhekasoft"
 __email__ = "jhekasoft@gmail.com"
 
@@ -64,6 +64,14 @@ class InsteadManagerTk(object):
         self.comboboxLang = ttk.Combobox(self.frameFilter, state="readonly")
         self.comboboxLang.bind("<<ComboboxSelected>>", gui_lang_change)
         self.comboboxLang.pack(side=LEFT)
+
+        self.gui_only_installed = IntVar()
+        def gui_only_installed_change(a, b, c):
+            instead_manager_tk.list_action()
+            #self.gui_only_installed.update_idletasks()
+        self.gui_only_installed.trace('w', gui_only_installed_change)
+        self.checkboxOnlyInstalled = ttk.Checkbutton(self.frameFilter, text="Only installed", variable=self.gui_only_installed)
+        self.checkboxOnlyInstalled.pack(side=LEFT)
 
         self.frame = ttk.Frame(self.content, borderwidth=0, relief="flat", width=200, height=100, padding=(5, 0, 0, 0))
 
@@ -141,8 +149,10 @@ class InsteadManagerTk(object):
         except RepositoryFilesAreMissingError:
             return
 
+        gui_keyboard = self.gui_keyword.get()
         gui_repository = self.comboboxRepository.get()
         gui_lang = self.comboboxLang.get()
+        gui_only_installed = self.gui_only_installed.get()
 
         repositories = [''] + self.instead_manager.get_gamelist_repositories(game_list)
         self.comboboxRepository['values'] = repositories
@@ -150,8 +160,8 @@ class InsteadManagerTk(object):
         langs = [''] + self.instead_manager.get_gamelist_langs(game_list)
         self.comboboxLang['values'] = langs
 
-        if self.gui_keyword.get() or gui_repository or gui_lang:
-            game_list = self.instead_manager.filter_games(game_list, self.gui_keyword.get(), gui_repository, gui_lang)
+        if gui_keyboard or gui_repository or gui_lang or gui_only_installed:
+            game_list = self.instead_manager.filter_games(game_list, gui_keyboard, gui_repository, gui_lang, gui_only_installed)
 
         # Clear list
         # map(lambda x: print(x), treeRepositoryList.get_children())

@@ -229,13 +229,18 @@ class InsteadManager(object):
     def is_found_lang(self, game, value):
         return value in game['langs']
 
-    def filter_games(self, game_list, keyword: str=None, repository: str=None, lang: str=None):
+    def is_found_only_installed(self, game, value):
+        return value == game['installed']
+
+    def filter_games(self, game_list, keyword: str=None, repository: str=None, lang: str=None, only_installed=False):
         if keyword:
             game_list = self.filter_by(game_list, self.is_found_keyword, keyword)
         if repository:
             game_list = self.filter_by(game_list, self.is_found_repository, repository)
         if lang:
             game_list = self.filter_by(game_list, self.is_found_lang, lang)
+        if only_installed:
+            game_list = self.filter_by(game_list, self.is_found_only_installed, only_installed)
 
         return game_list
 
