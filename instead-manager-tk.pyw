@@ -12,7 +12,7 @@ from tkinter import *
 import tkinter.ttk as ttk
 import tkinter.font as font
 import webbrowser
-from manager import InsteadManager, WinInsteadManager, MacInsteadManager, InsteadManagerHelper, RepositoryFilesAreMissingError
+from manager import InsteadManagerFreeUnix, InsteadManagerWin, InsteadManagerMac, InsteadManagerHelper, RepositoryFilesAreMissingError
 
 
 class InsteadManagerTk(object):
@@ -291,7 +291,7 @@ class InsteadManagerTk(object):
             self.buttonGameOpenInfo.pack()
 
 
-class FreeUnixInsteadManagerTk(InsteadManagerTk):
+class InsteadManagerTkFreeUnix(InsteadManagerTk):
     def theme_prepare(self):
         # ttk theme for UNIX-like systems
         import packages.ttk_themes.plastik.plastik_theme as plastik_theme
@@ -311,16 +311,16 @@ if __name__ == "__main__":
     root = Tk(className='INSTEAD Manager')
 
     if InsteadManagerHelper.is_win():
-        instead_manager = WinInsteadManager(base_path)
+        instead_manager = InsteadManagerWin(base_path)
         instead_manager_tk = InsteadManagerTk(instead_manager, root)
     elif InsteadManagerHelper.is_mac():
-        instead_manager = MacInsteadManager(base_path)
+        instead_manager = InsteadManagerMac(base_path)
         instead_manager_tk = InsteadManagerTk(instead_manager, root)
     elif InsteadManagerHelper.is_free_unix():
-        instead_manager = InsteadManager(base_path)
-        instead_manager_tk = FreeUnixInsteadManagerTk(instead_manager, root)
+        instead_manager = InsteadManagerFreeUnix(base_path)
+        instead_manager_tk = InsteadManagerTkFreeUnix(instead_manager, root)
     else:
-        instead_manager = InsteadManager(base_path)
+        instead_manager = InsteadManagerFreeUnix(base_path)
         instead_manager_tk = InsteadManagerTk(instead_manager, root)
 
     root.wait_visibility()

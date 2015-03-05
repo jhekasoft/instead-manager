@@ -11,13 +11,13 @@ from xml.dom import minidom
 import re
 import urllib.request
 import json
+from abc import ABCMeta, abstractmethod
 
 
-class InsteadManager(object):
+class InsteadManager(object, metaclass=ABCMeta):
     skeleton_filename = 'instead-manager-settings.json'
     default_config_path = '~/.instead/manager/'
     default_config_filename = 'instead-manager-settings.json'
-    run_game_command_postfix = ' &>/dev/null'
 
     def __init__(self, base_path, games_path=None, interpreter_command=None, repositories=None):
         self.base_path = base_path
@@ -297,8 +297,7 @@ class InsteadManager(object):
         quit_instead = ' -quit'
         if run:
             quit_instead = ''
-        return_code = subprocess.call(
-            '%s -install "%s"%s' % (self.interpreter_command, game_filename, quit_instead), shell=True)
+        return_code = self.execute_install_game_command(game_filename, quit_instead)
 
         os.remove(game_filename)
 
@@ -331,8 +330,7 @@ class InsteadManager(object):
         if len(files) > 0:
             running_name = running_name+'.idf'
 
-        subprocess.Popen('%s -game "%s"%s' % (self.interpreter_command, running_name, self.run_game_command_postfix),
-                         shell=True)
+        self.execute_run_game_command(running_name)
         return True
 
     def delete_game(self, name):
@@ -363,19 +361,51 @@ class InsteadManager(object):
         check, info = self.check_instead_interpreter_with_info()
         return check
 
+    @abstractmethod
+    def execute_run_game_command(self, game_name):
+        pass
+
+    @abstractmethod
+    def execute_install_game_command(self, game_filename, quit_instead):
+        pass
+
     @staticmethod
     def size_format(size):
         return InsteadManagerHelper.size_format(size)
 
 
-class WinInsteadManager(InsteadManager):
+class InsteadManagerFreeUnix(InsteadManager):
+    def execute_run_game_command(self, game_name):
+        command = '%s -game "%s" &>/dev/null' % (self.interpreter_command, game_name)
+        subprocess.Popen(command, shell=True)
+
+    def execute_install_game_command(self, game_filename, quit_instead):
+        command = '%s -install "%s"%s' % (self.interpreter_command, game_filename, quit_instead)
+        return subprocess.call(command, shell=True)
+
+class InsteadManagerWin(InsteadManager):
     skeleton_filename = 'instead-manager-settings-win.json'
     default_config_path = '~\\Local Settings\\Application Data\\instead\\manager\\'
-    run_game_command_postfix = ''
+
+    def execute_run_game_command(self, game_name):
+        command = '%s -game "%s"' % (self.interpreter_command, game_name)
+        subprocess.Popen(command, shell=True)
+
+    def execute_install_game_command(self, game_filename, quit_instead):
+        command = '%s -install "%s"%s' % (self.interpreter_command, game_filename, quit_instead)
+        return subprocess.call(command, shell=True)
 
 
-class MacInsteadManager(InsteadManager):
+class InsteadManagerMac(InsteadManager):
     skeleton_filename = 'instead-manager-settings-mac.json'
+
+    def execute_run_game_command(self, game_name):
+        command = 'export LC_CTYPE=C; open -a "%s" --args -game "%s"' % (self.interpreter_command, game_name)
+        subprocess.Popen(command, shell=True)
+
+    def execute_install_game_command(self, game_filename, quit_instead):
+        command = '"%s" -install "%s"%s' % (self.interpreter_command, game_filename, quit_instead)
+        return subprocess.call(command, shell=True)
 
 
 class InsteadManagerHelper(object):
