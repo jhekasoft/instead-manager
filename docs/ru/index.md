@@ -5,4 +5,4 @@ manager.py -- базовый модуль с реализацией базово
 
 instead-manager.py -- CLI-реализация.
 
-instead-manager-tk.py -- GUI реализация с использованием tkinter.
+instead-manager-tk.py -- GUI-реализация с использованием tkinter.

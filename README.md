@@ -67,3 +67,8 @@ Windows systems:
 ```
 C:\Python34\python.exe instead-manager-tk.py
 ```
+
+Documentation
+-------------
+
+See it [here](docs/index.md).
