@@ -10,12 +10,12 @@ import os
 from threading import Thread
 from tkinter import *
 import tkinter.ttk as ttk
-import tkinter.font as font
+# import tkinter.font as font
 import webbrowser
 from manager import InsteadManagerFreeUnix, InsteadManagerWin, InsteadManagerMac, InsteadManagerHelper, RepositoryFilesAreMissingError
 
 
-class InsteadManagerTk(object):
+class TkMainWindow(object):
     gui_game_list = {}
     gui_selected_item = ''
     gui_messages = {
@@ -27,7 +27,7 @@ class InsteadManagerTk(object):
         self.instead_manager = instead_manager
         self.root = root
 
-        self.theme_prepare()
+        self.tk_theme_prepare()
 
         self.root.resizable(width=FALSE, height=FALSE)
 
@@ -39,6 +39,28 @@ class InsteadManagerTk(object):
 
         self.content = ttk.Frame(self.root, padding=(5, 5, 5, 5))
 
+        self.tk_filter_prepare()
+
+        self.tk_game_info_prepare()
+
+        # filterImage = PhotoImage(file=os.path.join(base_path, 'resources', 'images', 'icons', 'gnome', 'find.png'))
+        # filterButton = ttk.Button(frame, style='Toolbutton', image=filterImage, width=100)
+        # filterButton.pack()
+
+        self.tk_games_prepare()
+
+        self.buttonUpdateRepository = ttk.Button(self.content, text=self.gui_messages['update_repo'], command=self.update_and_list_action, width=40)
+
+        self.content.pack(fill='both', expand=True)
+        self.frameFilter.grid(column=0, row=0, sticky=(N, S, E, W))
+        self.frameGames.grid(column=0, row=1, columnspan=3, rowspan=1, sticky=(N, S, E, W))
+        self.frameGameInfo.grid(column=4, row=0, columnspan=3, rowspan=2, sticky=(N, S, E, W))
+        self.buttonUpdateRepository.grid(column=0, row=3, sticky=(N, S, E, W))
+
+    def tk_theme_prepare(self):
+        pass
+
+    def tk_filter_prepare(self):
         self.frameFilter = ttk.Frame(self.content, borderwidth=0, relief="flat", width=200, height=100)
         self.gui_keyword = StringVar()
 
@@ -53,7 +75,6 @@ class InsteadManagerTk(object):
         def gui_lang_change(widget):
             instead_manager_tk.list_action()
 
-        # gui_keyword.set('test')
         self.entryKeyword = ttk.Entry(self.frameFilter, textvariable=self.gui_keyword)
         self.entryKeyword.pack(side=LEFT)
 
@@ -73,21 +94,18 @@ class InsteadManagerTk(object):
         self.checkboxOnlyInstalled = ttk.Checkbutton(self.frameFilter, text="Only installed", variable=self.gui_only_installed)
         self.checkboxOnlyInstalled.pack(side=LEFT)
 
-        self.frame = ttk.Frame(self.content, borderwidth=0, relief="flat", width=200, height=100, padding=(5, 0, 0, 0))
+    def tk_game_info_prepare(self):
+        self.frameGameInfo = ttk.Frame(self.content, borderwidth=0, relief="flat", width=200, height=100, padding=(5, 0, 0, 0))
 
-        self.managerLogoFrame = ttk.Button(self.frame, image=self.managerLogo)
-        self.labelGameTitle = ttk.Label(self.frame, text='')
-        self.labelGameRepository = ttk.Label(self.frame, text='')
-        self.labelGameVersion = ttk.Label(self.frame, text='')
-        self.labelGameLang = ttk.Label(self.frame, text='')
-        self.buttonGamePlay = ttk.Button(self.frame, text="Play", command=self.run_game_action)
-        self.buttonGameDelete = ttk.Button(self.frame, text="Delete", command=self.delete_game_action)
-        self.buttonGameInstall = ttk.Button(self.frame, text="Install", command=self.install_game_action)
-        self.buttonGameOpenInfo = ttk.Button(self.frame, text="Info", command=self.game_info_page_open)
-
-        # filterImage = PhotoImage(file=os.path.join(base_path, 'resources', 'images', 'icons', 'gnome', 'find.png'))
-        # filterButton = ttk.Button(frame, style='Toolbutton', image=filterImage, width=100)
-        # filterButton.pack()
+        self.managerLogoFrame = ttk.Button(self.frameGameInfo, image=self.managerLogo)
+        self.labelGameTitle = ttk.Label(self.frameGameInfo, text='')
+        self.labelGameRepository = ttk.Label(self.frameGameInfo, text='')
+        self.labelGameVersion = ttk.Label(self.frameGameInfo, text='')
+        self.labelGameLang = ttk.Label(self.frameGameInfo, text='')
+        self.buttonGamePlay = ttk.Button(self.frameGameInfo, text="Play", command=self.run_game_action)
+        self.buttonGameDelete = ttk.Button(self.frameGameInfo, text="Delete", command=self.delete_game_action)
+        self.buttonGameInstall = ttk.Button(self.frameGameInfo, text="Install", command=self.install_game_action)
+        self.buttonGameOpenInfo = ttk.Button(self.frameGameInfo, text="Info", command=self.game_info_page_open)
 
         self.managerLogoFrame.pack()
         self.labelGameTitle.pack()
@@ -95,41 +113,24 @@ class InsteadManagerTk(object):
         self.labelGameVersion.pack()
         self.labelGameLang.pack()
 
-        self.container = ttk.Frame(self.content, padding=(0, 5, 0, 5))
-        #container.pack(fill='both', expand=True)
-        self.treeGameList = ttk.Treeview(self.container, columns=('title', 'version', 'size'), selectmode='browse', show='headings', height=14)
+    def tk_games_prepare(self):
+        self.frameGames = ttk.Frame(self.content, padding=(0, 5, 0, 5))
+        self.treeGameList = ttk.Treeview(self.frameGames, columns=('title', 'version', 'size'), selectmode='browse', show='headings', height=14)
         self.treeGameList.column("title", width=350)
-        #treeGameList.column("lang", width=50)
         self.treeGameList.column("version", width=70)
         self.treeGameList.column("size", width=70)
-        #treeGameList.column("repository", width=220)
         self.treeGameList.heading("title", text="Title")
-        #treeGameList.heading("lang", text="Lang", command=lambda: print('lang'))
         self.treeGameList.heading("version", text="Version")
         self.treeGameList.heading("size", text="Size")
-        #treeGameList.heading("repository", text="Repository")
-        # installed_font = font.Font(font=labelGameTitle.cget("font")).copy()
-        # installed_font.config(weight=font.BOLD)
         self.treeGameList.tag_configure('installed', background='#f0f0f0')
         self.treeGameList.bind("<Double-1>", self.on_game_list_double_click)
         self.treeGameList.bind('<<TreeviewSelect>>', self.on_game_select)
         self.vsb = ttk.Scrollbar(orient="vertical", command=self.treeGameList.yview)
         self.treeGameList.configure(yscrollcommand=self.vsb.set)
         self.treeGameList.grid(column=0, row=0, sticky=(N, S, E, W))
-        self.vsb.grid(column=1, row=0, sticky='ns', in_=self.container)
-        self.container.grid_columnconfigure(0, weight=1)
-        self.container.grid_rowconfigure(0, weight=1)
-
-        self.buttonUpdateRepository = ttk.Button(self.content, text=self.gui_messages['update_repo'], command=self.update_and_list_action, width=40)
-
-        self.content.pack(fill='both', expand=True)
-        self.frameFilter.grid(column=0, row=0, sticky=(N, S, E, W))
-        self.container.grid(column=0, row=1, columnspan=3, rowspan=1, sticky=(N, S, E, W))
-        self.frame.grid(column=4, row=0, columnspan=3, rowspan=2, sticky=(N, S, E, W))
-        self.buttonUpdateRepository.grid(column=0, row=3, sticky=(N, S, E, W))
-
-    def theme_prepare(self):
-        pass
+        self.vsb.grid(column=1, row=0, sticky='ns', in_=self.frameGames)
+        self.frameGames.grid_columnconfigure(0, weight=1)
+        self.frameGames.grid_rowconfigure(0, weight=1)
 
     def game_info_page_open(self):
         webbrowser.open_new(self.gui_game_list[self.gui_selected_item]['descurl'])
@@ -291,8 +292,8 @@ class InsteadManagerTk(object):
             self.buttonGameOpenInfo.pack()
 
 
-class InsteadManagerTkFreeUnix(InsteadManagerTk):
-    def theme_prepare(self):
+class TkMainWindowFreeUnix(TkMainWindow):
+    def tk_theme_prepare(self):
         # ttk theme for UNIX-like systems
         import packages.ttk_themes.plastik.plastik_theme as plastik_theme
         try:
@@ -312,16 +313,16 @@ if __name__ == "__main__":
 
     if InsteadManagerHelper.is_win():
         instead_manager = InsteadManagerWin(base_path)
-        instead_manager_tk = InsteadManagerTk(instead_manager, root)
+        instead_manager_tk = TkMainWindow(instead_manager, root)
     elif InsteadManagerHelper.is_mac():
         instead_manager = InsteadManagerMac(base_path)
-        instead_manager_tk = InsteadManagerTk(instead_manager, root)
+        instead_manager_tk = TkMainWindow(instead_manager, root)
     elif InsteadManagerHelper.is_free_unix():
         instead_manager = InsteadManagerFreeUnix(base_path)
-        instead_manager_tk = InsteadManagerTkFreeUnix(instead_manager, root)
+        instead_manager_tk = TkMainWindowFreeUnix(instead_manager, root)
     else:
         instead_manager = InsteadManagerFreeUnix(base_path)
-        instead_manager_tk = InsteadManagerTk(instead_manager, root)
+        instead_manager_tk = TkMainWindow(instead_manager, root)
 
     root.wait_visibility()
     instead_manager_tk.check_repositories_action()
