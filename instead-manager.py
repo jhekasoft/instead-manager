@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
 __title__ = 'instead-manager'
@@ -160,7 +160,7 @@ class InsteadManagerConsole(object):
         self.out_success("Game has run")
 
     def delete_action(self, name: str):
-        deleted = self.instead_manager.delete_game_action(name)
+        deleted = self.instead_manager.delete_game(name)
         if not deleted:
             self.out_fail("Game hasn't been deleted", exit=True)
 
