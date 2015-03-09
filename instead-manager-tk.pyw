@@ -18,12 +18,15 @@ from manager import InsteadManagerFreeUnix, InsteadManagerWin, InsteadManagerMac
 class TkMainWindow(object):
     gui_game_list = {}
     gui_selected_item = ''
+    gui_installed_game_index = None
     gui_messages = {
         'update_repo': 'Update repositories'
     }
     gui_widgets = {}
 
     def __init__(self, instead_manager, root):
+        self.is_games_need_update = False
+
         self.instead_manager = instead_manager
         self.root = root
 
@@ -184,9 +187,11 @@ class TkMainWindow(object):
                 self.instead_manager.size_format(int(game_list_item['size']))
             ), tags=tags)
             self.gui_game_list[item] = game_list_item
+            self.gui_game_list[item]['installing'] = False
 
     def update_and_list_action(self):
         self.buttonUpdateRepository.state(['disabled'])
+
         t = Thread(target=lambda:
                    self.instead_manager.\
                    update_repositories(begin_repository_downloading_callback=self.begin_repository_downloading_callback,
@@ -227,17 +232,34 @@ class TkMainWindow(object):
         self.treeGameList.set(item, 'title', '%s installing...' % self.gui_game_list[item]['title'])
 
     def end_installation(self, item, game, result):
-        item_index = self.treeGameList.index(item)
+        self.gui_game_list[item]['installing'] = False
+        self.gui_installed_game_index = self.treeGameList.index(item)
 
-        self.list_action()
+        # Check if another games are installing
+        for gui_game in self.gui_game_list:
+            if self.gui_game_list[gui_game]['installing']:
+                return
 
-        # Focus installed game
+        # Update game list if the all games is installed
+        self.is_games_need_update = True
+
+    def check_game_list_update(self):
+        if self.is_games_need_update:
+            self.list_action()
+            self.is_games_need_update = False
+
+            # Focus installed game
+            self.focus_game(self.gui_installed_game_index)
+
+        self.root.after(100, instead_manager_tk.check_game_list_update)
+
+    def focus_game(self, item_index):
         tree_items = self.treeGameList.get_children()
         for item in tree_items:
             if self.treeGameList.index(item) == item_index:
                 self.treeGameList.focus(item)
                 self.treeGameList.selection_set(item)
-                self.treeGameList.yview_scroll(item_index, 'units')
+                # self.treeGameList.yview_scroll(item_index, 'units')
                 break
 
     def on_game_select(self, event):
@@ -264,6 +286,7 @@ class TkMainWindow(object):
                                               begin_installation_callback=lambda game: self.begin_installation_callback(item),
                                               end_installation=lambda game, result: self.end_installation(item, game, result)))
         t.start()
+        self.gui_game_list[item]['installing'] = True
 
     def run_game_action(self):
         item = self.gui_selected_item
@@ -326,4 +349,5 @@ if __name__ == "__main__":
 
     root.wait_visibility()
     instead_manager_tk.check_repositories_action()
+    instead_manager_tk.check_game_list_update()
     root.mainloop()
