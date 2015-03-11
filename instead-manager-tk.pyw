@@ -23,10 +23,9 @@ class TkMainWindow(object):
         'update_repo': 'Update repositories'
     }
     gui_widgets = {}
+    is_games_need_update = False
 
     def __init__(self, instead_manager, root):
-        self.is_games_need_update = False
-
         self.instead_manager = instead_manager
         self.root = root
 
@@ -42,26 +41,35 @@ class TkMainWindow(object):
 
         self.content = ttk.Frame(self.root, padding=(5, 5, 5, 5))
 
+        self.tk_toolbar_prepare()
+
         self.tk_filter_prepare()
 
         self.tk_game_info_prepare()
 
-        # filterImage = PhotoImage(file=os.path.join(base_path, 'resources', 'images', 'icons', 'gnome', 'find.png'))
-        # filterButton = ttk.Button(frame, style='Toolbutton', image=filterImage, width=100)
-        # filterButton.pack()
-
         self.tk_games_prepare()
 
-        self.buttonUpdateRepository = ttk.Button(self.content, text=self.gui_messages['update_repo'], command=self.update_and_list_action, width=40)
-
         self.content.pack(fill='both', expand=True)
-        self.frameFilter.grid(column=0, row=0, sticky=(N, S, E, W))
-        self.frameGames.grid(column=0, row=1, columnspan=3, rowspan=1, sticky=(N, S, E, W))
-        self.frameGameInfo.grid(column=4, row=0, columnspan=3, rowspan=2, sticky=(N, S, E, W))
-        self.buttonUpdateRepository.grid(column=0, row=3, sticky=(N, S, E, W))
+        self.frameToolbar.grid(column=0, row=0, sticky=(N, S, E, W))
+        self.frameFilter.grid(column=0, row=1, sticky=(N, S, E, W))
+        self.frameGames.grid(column=0, row=2, columnspan=3, rowspan=1, sticky=(N, S, E, W))
+        self.frameGameInfo.grid(column=4, row=0, columnspan=3, rowspan=3, sticky=(N, S, E, W))
+        # self.buttonUpdateRepository.grid(column=0, row=4, sticky=(N, S, E, W))
 
     def tk_theme_prepare(self):
         pass
+
+    def tk_toolbar_prepare(self):
+        self.frameToolbar = ttk.Frame(self.content, borderwidth=0, relief="flat", width=200, height=100)
+
+        self.buttonUpdateRepository = ttk.Button(self.frameToolbar, style='Toolbutton', text=self.gui_messages['update_repo'], command=self.update_and_list_action)
+        self.buttonUpdateRepository.pack(side=LEFT)
+
+        self.buttonToggleFilter = ttk.Button(self.frameToolbar, style='Toolbutton', text="Filter")
+        self.buttonToggleFilter.pack(side=LEFT)
+
+        self.buttonToggleGameInfo = ttk.Button(self.frameToolbar, style='Toolbutton', text="Game info")
+        self.buttonToggleGameInfo.pack(side=LEFT)
 
     def tk_filter_prepare(self):
         self.frameFilter = ttk.Frame(self.content, borderwidth=0, relief="flat", width=200, height=100)
@@ -145,7 +153,8 @@ class TkMainWindow(object):
         self.buttonUpdateRepository['text'] = self.gui_messages['update_repo']
         self.buttonUpdateRepository.state(['!disabled'])
         if list:
-            self.list_action()
+            self.is_games_need_update = True;
+            # self.list_action()
 
     def list_action(self):
         try:
@@ -249,9 +258,11 @@ class TkMainWindow(object):
             self.is_games_need_update = False
 
             # Focus installed game
-            self.focus_game(self.gui_installed_game_index)
+            if self.gui_installed_game_index:
+                self.focus_game(self.gui_installed_game_index)
+                self.gui_installed_game_index = None
 
-        self.root.after(100, instead_manager_tk.check_game_list_update)
+        self.root.after(100, self.check_game_list_update)
 
     def focus_game(self, item_index):
         tree_items = self.treeGameList.get_children()
