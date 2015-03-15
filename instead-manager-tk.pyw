@@ -23,6 +23,8 @@ class TkMainWindow(object):
         'update_repo': 'Update repositories'
     }
     gui_widgets = {}
+    gui_frame_game_info_show = True
+    gui_frame_filter_show = True
     is_games_need_update = False
 
     def __init__(self, instead_manager, root):
@@ -50,14 +52,30 @@ class TkMainWindow(object):
         self.tk_games_prepare()
 
         self.content.pack(fill='both', expand=True)
-        self.frameToolbar.grid(column=0, row=0, sticky=(N, S, E, W))
-        self.frameFilter.grid(column=0, row=1, sticky=(N, S, E, W))
+        self.frameToolbar.grid(column=0, row=0, columnspan=3, sticky=(N, S, E, W))
         self.frameGames.grid(column=0, row=2, columnspan=3, rowspan=1, sticky=(N, S, E, W))
-        self.frameGameInfo.grid(column=4, row=0, columnspan=3, rowspan=3, sticky=(N, S, E, W))
+        self.tk_filter_toggle()
+        self.tk_game_info_toggle()
         # self.buttonUpdateRepository.grid(column=0, row=4, sticky=(N, S, E, W))
 
     def tk_theme_prepare(self):
         pass
+
+    def tk_game_info_toggle(self):
+        if self.gui_frame_game_info_show:
+            self.frameGameInfo.grid(column=4, row=0, columnspan=3, rowspan=3, sticky=(N, S, E, W))
+        else:
+            self.frameGameInfo.grid_forget()
+
+        self.gui_frame_game_info_show = not self.gui_frame_game_info_show
+
+    def tk_filter_toggle(self):
+        if self.gui_frame_filter_show:
+            self.frameFilter.grid(column=0, row=1, columnspan=3, sticky=(N, S, E, W))
+        else:
+            self.frameFilter.grid_forget()
+
+        self.gui_frame_filter_show = not self.gui_frame_filter_show
 
     def tk_toolbar_prepare(self):
         self.frameToolbar = ttk.Frame(self.content, borderwidth=0, relief="flat", width=200, height=100)
@@ -65,11 +83,11 @@ class TkMainWindow(object):
         self.buttonUpdateRepository = ttk.Button(self.frameToolbar, style='Toolbutton', text=self.gui_messages['update_repo'], command=self.update_and_list_action)
         self.buttonUpdateRepository.pack(side=LEFT)
 
-        self.buttonToggleFilter = ttk.Button(self.frameToolbar, style='Toolbutton', text="Filter")
-        self.buttonToggleFilter.pack(side=LEFT)
+        self.buttonToggleGameInfo = ttk.Button(self.frameToolbar, style='Toolbutton', text=">", command=self.tk_game_info_toggle)
+        self.buttonToggleGameInfo.pack(side=RIGHT)
 
-        self.buttonToggleGameInfo = ttk.Button(self.frameToolbar, style='Toolbutton', text="Game info")
-        self.buttonToggleGameInfo.pack(side=LEFT)
+        self.buttonToggleFilter = ttk.Button(self.frameToolbar, style='Toolbutton', text="v", command=self.tk_filter_toggle)
+        self.buttonToggleFilter.pack(side=RIGHT)
 
     def tk_filter_prepare(self):
         self.frameFilter = ttk.Frame(self.content, borderwidth=0, relief="flat", width=200, height=100)
@@ -134,8 +152,8 @@ class TkMainWindow(object):
         self.treeGameList.heading("version", text="Version")
         self.treeGameList.heading("size", text="Size")
         self.treeGameList.tag_configure('installed', background='#f0f0f0')
-        self.treeGameList.bind("<Double-1>", self.on_game_list_double_click)
         self.treeGameList.bind('<<TreeviewSelect>>', self.on_game_select)
+        self.treeGameList.bind("<Double-1>", self.on_game_list_double_click)
         self.vsb = ttk.Scrollbar(orient="vertical", command=self.treeGameList.yview)
         self.treeGameList.configure(yscrollcommand=self.vsb.set)
         self.treeGameList.grid(column=0, row=0, sticky=(N, S, E, W))
@@ -232,8 +250,8 @@ class TkMainWindow(object):
             loadedsize = totalsize
 
         if totalsize > 0:
-            percent = loadedsize * 1e2 / totalsize
-            s = "%5.1f%% %s / %s" % (
+            percent = loadedsize * 100 / totalsize
+            s = "%5.1d%% %s / %s" % (
                 percent, self.instead_manager.size_format(loadedsize), self.instead_manager.size_format(totalsize))
             self.treeGameList.set(item, 'title', '%s %s' % (self.gui_game_list[item]['title'], s))
 
