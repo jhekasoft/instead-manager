@@ -276,7 +276,7 @@ class TkMainWindow(object):
             self.is_games_need_update = False
 
             # Focus installed game
-            if self.gui_installed_game_index:
+            if self.gui_installed_game_index is not None:
                 self.focus_game(self.gui_installed_game_index)
                 self.gui_installed_game_index = None
 
