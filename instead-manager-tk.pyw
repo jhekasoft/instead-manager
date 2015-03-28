@@ -51,7 +51,7 @@ class TkMainWindow(object):
 
         self.tk_games_prepare()
 
-        self.content.pack(fill='both', expand=True)
+        self.content.pack(fill=BOTH, expand=True)
         self.frameToolbar.grid(column=0, row=0, columnspan=3, sticky=(N, S, E, W))
         self.frameGames.grid(column=0, row=2, columnspan=3, rowspan=1, sticky=(N, S, E, W))
         self.tk_filter_toggle()
@@ -104,15 +104,21 @@ class TkMainWindow(object):
         def gui_lang_change(widget):
             instead_manager_tk.list_action()
 
-        self.entryKeyword = ttk.Entry(self.frameFilter, textvariable=self.gui_keyword)
+        self.labelKeyword = Label(self.frameFilter, text="Search:")
+        self.entryKeyword = ttk.Entry(self.frameFilter, textvariable=self.gui_keyword, width=10)
+        self.labelKeyword.pack(side=LEFT)
         self.entryKeyword.pack(side=LEFT)
 
-        self.comboboxRepository = ttk.Combobox(self.frameFilter, state="readonly")
+        self.labelRepository = Label(self.frameFilter, text="Repo:")
+        self.comboboxRepository = ttk.Combobox(self.frameFilter, state="readonly", width=16)
         self.comboboxRepository.bind("<<ComboboxSelected>>", gui_repository_change)
+        self.labelRepository.pack(side=LEFT)
         self.comboboxRepository.pack(side=LEFT, padx=5)
 
-        self.comboboxLang = ttk.Combobox(self.frameFilter, state="readonly")
+        self.labelLang = Label(self.frameFilter, text="Lang:")
+        self.comboboxLang = ttk.Combobox(self.frameFilter, state="readonly", width=3)
         self.comboboxLang.bind("<<ComboboxSelected>>", gui_lang_change)
+        self.labelLang.pack(side=LEFT)
         self.comboboxLang.pack(side=LEFT)
 
         self.gui_only_installed = IntVar()
@@ -134,7 +140,7 @@ class TkMainWindow(object):
         self.buttonGamePlay = ttk.Button(self.frameGameInfo, text="Play", command=self.run_game_action)
         self.buttonGameDelete = ttk.Button(self.frameGameInfo, text="Delete", command=self.delete_game_action)
         self.buttonGameInstall = ttk.Button(self.frameGameInfo, text="Install", command=self.install_game_action)
-        self.buttonGameOpenInfo = ttk.Button(self.frameGameInfo, text="Info", command=self.game_info_page_open)
+        self.buttonGameOpenInfo = ttk.Button(self.frameGameInfo, text="Details", command=self.game_info_page_open)
 
         self.managerLogoFrame.pack()
         self.labelGameTitle.pack()
@@ -144,8 +150,8 @@ class TkMainWindow(object):
 
     def tk_games_prepare(self):
         self.frameGames = ttk.Frame(self.content, padding=(0, 5, 0, 5))
-        self.treeGameList = ttk.Treeview(self.frameGames, columns=('title', 'version', 'size'), selectmode='browse', show='headings', height=14)
-        self.treeGameList.column("title", width=350)
+        self.treeGameList = ttk.Treeview(self.frameGames, columns=('title', 'version', 'size'), selectmode='browse', show='headings', height=18)
+        self.treeGameList.column("title", width=400)
         self.treeGameList.column("version", width=70)
         self.treeGameList.column("size", width=70)
         self.treeGameList.heading("title", text="Title")
@@ -165,7 +171,7 @@ class TkMainWindow(object):
         webbrowser.open_new(self.gui_game_list[self.gui_selected_item]['descurl'])
 
     def begin_repository_downloading_callback(self, repository):
-        self.buttonUpdateRepository['text'] = 'Downloading %s...' % repository['url']
+        self.buttonUpdateRepository['text'] = 'Updating...'
 
     def end_downloading_repositories(self, list=False):
         self.buttonUpdateRepository['text'] = self.gui_messages['update_repo']
