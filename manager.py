@@ -428,7 +428,7 @@ class InsteadManagerHelper(object):
 
     @staticmethod
     def is_mac():
-        return any(platform.mac_ver())
+        return 'darwin' == sys.platform
 
 
 class RepositoryFilesAreMissingError(Exception):
