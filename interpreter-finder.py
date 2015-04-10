@@ -17,5 +17,18 @@ class InsteadInterpreterFinder(object, metaclass=ABCMeta):
 
 class InsteadInterpreterFinderMac(InsteadInterpreterFinder):
 
+    paths = [
+        '/Applications/Instead.app/Contents/MacOS/sdl-instead'
+    ]
+
     def findInsteadInterpreter(self):
-        return '/Applications/Instead.app/Contents/MacOS/sdl-instead'
+        for path in self.paths:
+            if self.checkInterpreterPath(path):
+                return path
+
+        return None
+
+if __name__ == "__main__":
+    interpreter_finder = InsteadInterpreterFinderMac()
+    interpreter_path = interpreter_finder.findInsteadInterpreter()
+    print(interpreter_path)
