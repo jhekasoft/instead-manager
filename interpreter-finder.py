@@ -1,34 +1,56 @@
 __author__ = 'jheka'
 
 import os
+import sys
+import re
+import subprocess
 from abc import ABCMeta, abstractmethod
+
 
 class InsteadInterpreterFinder(object, metaclass=ABCMeta):
 
     def __init__(self):
         pass
 
-    @abstractmethod
-    def findInsteadInterpreter(self):
-        pass
-
-    def checkInterpreterPath(self, path: str):
-        return os.path.exists(path)
-
-class InsteadInterpreterFinderMac(InsteadInterpreterFinder):
-
-    paths = [
-        '/Applications/Instead.app/Contents/MacOS/sdl-instead'
-    ]
-
-    def findInsteadInterpreter(self):
-        for path in self.paths:
-            if self.checkInterpreterPath(path):
+    def find_interpreter(self):
+        for path in self.exact_file_paths:
+            if self.check_interpreter_path(path):
                 return path
 
         return None
 
+    def check_interpreter_path(self, path: str):
+        return os.path.exists(path)
+
+
+class InsteadInterpreterFinderFreeUnix(InsteadInterpreterFinder):
+
+    def find_interpreter(self):
+        interpreter_command = "instead"
+        if 0 == subprocess.call(["which", interpreter_command], stdout=subprocess.PIPE):
+            return interpreter_command
+
+        return None
+
+class InsteadInterpreterFinderMac(InsteadInterpreterFinder):
+
+    exact_file_paths = [
+        '/Applications/Instead.app/Contents/MacOS/sdl-instead'
+    ]
+
+
+class InsteadInterpreterFinderWin(InsteadInterpreterFinder):
+
+    exact_file_paths = []
+
+    def __init__(self):
+        drives = re.findall(r"[A-Z]+:.*$", os.popen("mountvol /").read(), re.MULTILINE)
+        for drive in drives:
+            self.exact_file_paths.append(drive + 'Program Files\Games\INSTEAD\sdl-instead.exe')
+            self.exact_file_paths.append(drive + 'Program Files (x86)\Games\INSTEAD\sdl-instead.exe')
+
+
 if __name__ == "__main__":
-    interpreter_finder = InsteadInterpreterFinderMac()
-    interpreter_path = interpreter_finder.findInsteadInterpreter()
+    interpreter_finder = InsteadInterpreterFinderFreeUnix()
+    interpreter_path = interpreter_finder.find_interpreter()
     print(interpreter_path)
