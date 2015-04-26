@@ -1,4 +1,4 @@
-__author__ = 'jheka'
+__author__ = 'jhekasoft'
 
 import os
 import sys
@@ -8,6 +8,8 @@ from abc import ABCMeta, abstractmethod
 
 
 class InsteadInterpreterFinder(object, metaclass=ABCMeta):
+
+    download_link = 'http://instead.syscall.ru/ru/download/'
 
     def __init__(self):
         pass
@@ -22,6 +24,9 @@ class InsteadInterpreterFinder(object, metaclass=ABCMeta):
     def check_interpreter_path(self, path: str):
         return os.path.exists(path)
 
+    def get_download_link(self):
+        return self.download_link
+
 
 class InsteadInterpreterFinderFreeUnix(InsteadInterpreterFinder):
 
@@ -31,6 +36,7 @@ class InsteadInterpreterFinderFreeUnix(InsteadInterpreterFinder):
             return interpreter_command
 
         return None
+
 
 class InsteadInterpreterFinderMac(InsteadInterpreterFinder):
 
