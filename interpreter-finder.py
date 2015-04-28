@@ -27,6 +27,15 @@ class InsteadInterpreterFinder(object, metaclass=ABCMeta):
     def get_download_link(self):
         return self.download_link
 
+    def get_interpreter_version(self, interpreter_command: str):
+        try:
+            info = subprocess.check_output([interpreter_command, '-version'])
+        except Exception as e:
+            return False, e
+
+        if info:
+            return True, info.decode('ascii').strip()
+
 
 class InsteadInterpreterFinderFreeUnix(InsteadInterpreterFinder):
 
@@ -57,6 +66,8 @@ class InsteadInterpreterFinderWin(InsteadInterpreterFinder):
 
 
 if __name__ == "__main__":
-    interpreter_finder = InsteadInterpreterFinderFreeUnix()
+    interpreter_finder = InsteadInterpreterFinderMac()
     interpreter_path = interpreter_finder.find_interpreter()
     print(interpreter_path)
+    if interpreter_path:
+        print(interpreter_finder.get_interpreter_version(interpreter_path))

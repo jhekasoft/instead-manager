@@ -36,7 +36,7 @@ class InsteadManagerConsole(object):
         if exit:
             sys.exit(errno.EFAULT)
 
-    def print_game_list(self, game_list: int, verbose: bool):
+    def print_game_list(self, game_list: list, verbose: bool):
         for game in game_list:
             if verbose:
                 self.out("%s%s%s (%s) %s\n%s%s%s %s [%s]\nDescription URL: %s\nURL: %s\n" % (

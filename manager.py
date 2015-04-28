@@ -22,6 +22,7 @@ class InsteadManager(object, metaclass=ABCMeta):
     def __init__(self, base_path, games_path=None, interpreter_command=None, repositories=None):
         self.base_path = base_path
 
+        # todo: replace by Configurator
         # Config path
         self.config_path = self.base_path
         if not os.path.isfile(os.path.join(self.config_path, self.default_config_filename)):
@@ -54,6 +55,7 @@ class InsteadManager(object, metaclass=ABCMeta):
         return True
 
     def read_settings(self):
+        # todo: replace by Configurator
         """
         Loading config from JSON-file
 
@@ -349,6 +351,7 @@ class InsteadManager(object, metaclass=ABCMeta):
         # self.out("Folder '%s' doesn't exist. Is name correct?" % game_folder_path)
 
     def check_instead_interpreter_with_info(self):
+        # todo: replace by InsteadInterpreterFinder functionality
         try:
             info = subprocess.check_output([self.interpreter_command, '-version'])
         except Exception as e:
