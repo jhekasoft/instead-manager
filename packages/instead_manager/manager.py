@@ -13,16 +13,19 @@ import urllib.request
 import json
 from abc import ABCMeta, abstractmethod
 
+from packages.instead_manager.interpreter_finder import InsteadInterpreterFinder
+
 
 class InsteadManager(object, metaclass=ABCMeta):
     skeleton_filename = 'instead-manager-settings.json'
     default_config_path = '~/.instead/manager/'
     default_config_filename = 'instead-manager-settings.json'
 
-    def __init__(self, base_path, games_path=None, interpreter_command=None, repositories=None):
+    def __init__(self, base_path, interpreter_finder: InsteadInterpreterFinder=None,
+                 games_path=None, interpreter_command=None, repositories=None):
         self.base_path = base_path
 
-        # todo: replace by Configurator
+        # TODO: replace by Configurator
         # Config path
         self.config_path = self.base_path
         if not os.path.isfile(os.path.join(self.config_path, self.default_config_filename)):
@@ -48,6 +51,8 @@ class InsteadManager(object, metaclass=ABCMeta):
         self.tmp_game_path = os.path.join(self.config_path, 'games')
         self.check_and_create_path(self.tmp_game_path)
 
+        self.interpreter_finder = interpreter_finder
+
     def check_and_create_path(self, path):
         if not os.path.isdir(path):
             return os.makedirs(path)
@@ -55,7 +60,7 @@ class InsteadManager(object, metaclass=ABCMeta):
         return True
 
     def read_settings(self):
-        # todo: replace by Configurator
+        # TODO: replace by Configurator
         """
         Loading config from JSON-file
 
@@ -351,14 +356,10 @@ class InsteadManager(object, metaclass=ABCMeta):
         # self.out("Folder '%s' doesn't exist. Is name correct?" % game_folder_path)
 
     def check_instead_interpreter_with_info(self):
-        # todo: replace by InsteadInterpreterFinder functionality
-        try:
-            info = subprocess.check_output([self.interpreter_command, '-version'])
-        except Exception as e:
-            return False, e
+        if self.interpreter_finder is not None:
+            return self.interpreter_finder.check_interpreter(self.interpreter_command)
 
-        if info:
-            return True, info.decode('ascii').strip()
+        return False, 'Interpreter finder is not set'
 
     def check_instead_interpreter(self):
         check, info = self.check_instead_interpreter_with_info()

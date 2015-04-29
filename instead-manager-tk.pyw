@@ -12,7 +12,7 @@ from tkinter import *
 import tkinter.ttk as ttk
 # import tkinter.font as font
 import webbrowser
-from manager import InsteadManagerFreeUnix, InsteadManagerWin, InsteadManagerMac, InsteadManagerHelper, RepositoryFilesAreMissingError
+from packages.instead_manager.manager import InsteadManagerFreeUnix, InsteadManagerWin, InsteadManagerMac, InsteadManagerHelper, RepositoryFilesAreMissingError
 
 
 class TkMainWindow(object):

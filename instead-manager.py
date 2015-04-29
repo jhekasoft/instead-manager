@@ -13,7 +13,8 @@ import platform
 import argparse
 
 from packages.colorama import init as colorama_init, Style, Fore
-from manager import InsteadManagerFreeUnix, InsteadManagerWin, InsteadManagerMac, InsteadManagerHelper
+from packages.instead_manager.manager import InsteadManagerFreeUnix, InsteadManagerWin, InsteadManagerMac, InsteadManagerHelper
+from packages.instead_manager.interpreter_finder import InsteadInterpreterFinderFreeUnix, InsteadInterpreterFinderWin, InsteadInterpreterFinderMac
 
 
 class InsteadManagerConsole(object):
@@ -214,11 +215,11 @@ if __name__ == "__main__":
         base_path = os.path.dirname(os.path.abspath(sys.argv[0]))
 
     if InsteadManagerHelper.is_win():
-        instead_manager = InsteadManagerWin(base_path)
+        instead_manager = InsteadManagerWin(base_path, InsteadInterpreterFinderWin())
     elif InsteadManagerHelper.is_mac():
-        instead_manager = InsteadManagerMac(base_path)
+        instead_manager = InsteadManagerMac(base_path, InsteadInterpreterFinderMac())
     else:
-        instead_manager = InsteadManagerFreeUnix(base_path)
+        instead_manager = InsteadManagerFreeUnix(base_path, InsteadInterpreterFinderFreeUnix())
 
     instead_manager_console = InsteadManagerConsole(instead_manager)
 

@@ -27,7 +27,7 @@ class InsteadInterpreterFinder(object, metaclass=ABCMeta):
     def get_download_link(self):
         return self.download_link
 
-    def get_interpreter_version(self, interpreter_command: str):
+    def check_interpreter(self, interpreter_command: str):
         try:
             info = subprocess.check_output([interpreter_command, '-version'])
         except Exception as e:
@@ -70,4 +70,4 @@ if __name__ == "__main__":
     interpreter_path = interpreter_finder.find_interpreter()
     print(interpreter_path)
     if interpreter_path:
-        print(interpreter_finder.get_interpreter_version(interpreter_path))
+        print(interpreter_finder.check_interpreter(interpreter_path))
