@@ -2,7 +2,6 @@
 # -*- coding: UTF-8 -*-
 
 __title__ = 'instead-manager-tk'
-__version__ = "0.15"
 __author__ = "Evgeniy Efremov aka jhekasoft"
 __email__ = "jhekasoft@gmail.com"
 
@@ -20,7 +19,8 @@ class TkMainWindow(object):
     gui_selected_item = ''
     gui_installed_game_index = None
     gui_messages = {
-        'update_repo': 'Update repositories'
+        'update_repo': 'Update',
+        'settings': 'Settings',
     }
     gui_widgets = {}
     gui_frame_game_info_show = True
@@ -36,7 +36,7 @@ class TkMainWindow(object):
         self.root.resizable(width=FALSE, height=FALSE)
 
         # Window title
-        self.root.title("INSTEAD Manager " + __version__)
+        self.root.title("INSTEAD Manager " + self.instead_manager.version)
         # Window icon
         self.managerLogo = PhotoImage(file=os.path.join(self.instead_manager.base_path, 'resources', 'images', 'logo.gif'))
         self.root.iconphoto(True, self.managerLogo)
@@ -88,6 +88,9 @@ class TkMainWindow(object):
 
         self.buttonToggleFilter = ttk.Button(self.frameToolbar, style='Toolbutton', text="v", command=self.tk_filter_toggle)
         self.buttonToggleFilter.pack(side=RIGHT)
+
+        self.buttonShowSettings = ttk.Button(self.frameToolbar, style='Toolbutton', text=self.gui_messages['settings'], command=self.tk_game_info_toggle)
+        self.buttonShowSettings.pack(side=RIGHT)
 
     def tk_filter_prepare(self):
         self.frameFilter = ttk.Frame(self.content, borderwidth=0, relief="flat", width=200, height=100)
@@ -360,6 +363,11 @@ class TkMainWindowFreeUnix(TkMainWindow):
             import warnings
             warnings.warn("plastik theme being used without images")
 
+
+# class TkSettingsWindow(object):
+#
+#     def __init__(self, instead_manager, root):
+#         pass
 
 if __name__ == "__main__":
     try:

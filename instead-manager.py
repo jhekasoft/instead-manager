@@ -2,13 +2,12 @@
 # -*- coding: UTF-8 -*-
 
 __title__ = 'instead-manager'
-__version__ = "0.15"
 __author__ = "Evgeniy Efremov aka jhekasoft"
 __email__ = "jhekasoft@gmail.com"
 
 import os
 import sys
-import errno
+# import errno
 import platform
 import argparse
 
@@ -22,20 +21,17 @@ class InsteadManagerConsole(object):
     def __init__(self, instead_manager):
         self.instead_manager = instead_manager
 
-    def out(self, text):
+    def out(self, text, exit=False):
         print(text.encode(sys.stdout.encoding, errors='replace').decode(sys.stdout.encoding))
-
-    def out_success(self, text, exit=False):
-        self.out(Fore.GREEN + text + Fore.RESET)
 
         if exit:
             sys.exit()
 
-    def out_fail(self, text, exit=False):
-        self.out(Fore.RED + text + Fore.RESET)
+    def out_success(self, text, exit=False):
+        self.out(Fore.GREEN + text + Fore.RESET, exit)
 
-        if exit:
-            sys.exit(errno.EFAULT)
+    def out_fail(self, text, exit=False):
+        self.out(Fore.RED + text + Fore.RESET, exit)
 
     def print_game_list(self, game_list: list, verbose: bool):
         for game in game_list:
@@ -174,9 +170,12 @@ class InsteadManagerConsole(object):
 
         self.out_fail("INSTEAD interpreter is not correctly configured.\n%s" % info, exit=True)
 
+    def version_action(self, verbose: bool):
+        self.out("INSTEAD Manager %s" % self.instead_manager.version, exit=True)
+
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='%s (INSTEAD Manager) %s' % (__title__, __version__))
+    parser = argparse.ArgumentParser(description='%s (INSTEAD Manager)' % __title__)
     parser.add_argument('-u', '--update-repositories', action='store_true',
                         help='update repositories')
     parser.add_argument('-l', '--list', action='store_true',
@@ -197,6 +196,8 @@ if __name__ == "__main__":
                         help='delete installed game')
     parser.add_argument('-ci', '--check-instead', action='store_true',
                         help='checks INSTEAD interpreter')
+    parser.add_argument('-V', '--version', action='store_true',
+                        help='show INSTEAD Manager version')
     parser.add_argument('-v', '--verbose', action='store_true',
                         help='detailed print')
     parser.add_argument('-ansi', '--ansi-output', choices=['on', 'off', 'auto'], nargs='?', default='auto', const='auto',
@@ -223,7 +224,6 @@ if __name__ == "__main__":
 
     instead_manager_console = InsteadManagerConsole(instead_manager)
 
-
     # Init colors (colorama)
     strip = False
     if 'off' == args.ansi_output or ('auto' == args.ansi_output and not instead_manager_console.is_ansi_output()):
@@ -233,7 +233,9 @@ if __name__ == "__main__":
     if args.update_repositories:
         instead_manager_console.update_repositories_action()
 
-    if args.check_instead:
+    if args.version:
+            instead_manager_console.version_action(args.verbose)
+    elif args.check_instead:
             instead_manager_console.check_instead_interpreter_action(args.verbose)
     elif args.list:
         instead_manager_console.list_action(args.verbose)

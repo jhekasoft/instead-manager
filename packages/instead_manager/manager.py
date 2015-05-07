@@ -17,6 +17,7 @@ from packages.instead_manager.interpreter_finder import InsteadInterpreterFinder
 
 
 class InsteadManager(object, metaclass=ABCMeta):
+    version = '0.16'
     skeleton_filename = 'instead-manager-settings.json'
     default_config_path = '~/.instead/manager/'
     default_config_filename = 'instead-manager-settings.json'
@@ -43,6 +44,7 @@ class InsteadManager(object, metaclass=ABCMeta):
             if interpreter_command:
                 tmp_settings = self.read_settings()
                 tmp_settings['interpreter_command'] = interpreter_command
+                tmp_settings['version'] = self.version
                 json_settings_file = open(self.config_filepath, "w")
                 json.dump(tmp_settings, json_settings_file, indent=4)
                 json_settings_file.close()
