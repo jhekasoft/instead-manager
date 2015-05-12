@@ -77,6 +77,9 @@ class TkMainWindow(object):
 
         self.gui_frame_filter_show = not self.gui_frame_filter_show
 
+    def tk_open_settings_window(self):
+        TkSettingsWindow()
+
     def tk_toolbar_prepare(self):
         self.frameToolbar = ttk.Frame(self.content, borderwidth=0, relief="flat", width=200, height=100)
 
@@ -89,7 +92,7 @@ class TkMainWindow(object):
         self.buttonToggleFilter = ttk.Button(self.frameToolbar, style='Toolbutton', text="v", command=self.tk_filter_toggle)
         self.buttonToggleFilter.pack(side=RIGHT)
 
-        self.buttonShowSettings = ttk.Button(self.frameToolbar, style='Toolbutton', text=self.gui_messages['settings'], command=self.tk_game_info_toggle)
+        self.buttonShowSettings = ttk.Button(self.frameToolbar, style='Toolbutton', text=self.gui_messages['settings'], command=self.tk_open_settings_window)
         self.buttonShowSettings.pack(side=RIGHT)
 
     def tk_filter_prepare(self):
@@ -364,10 +367,15 @@ class TkMainWindowFreeUnix(TkMainWindow):
             warnings.warn("plastik theme being used without images")
 
 
-# class TkSettingsWindow(object):
-#
-#     def __init__(self, instead_manager, root):
-#         pass
+class TkSettingsWindow(object):
+
+    def __init__(self):
+        self.slave = Toplevel(root)
+        self.slave.title('Settings')
+        self.slave.geometry('200x150+400+300')
+        self.slave.grab_set()
+        self.slave.focus_set()
+        self.slave.wait_window()
 
 if __name__ == "__main__":
     try:
