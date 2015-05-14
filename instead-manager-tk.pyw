@@ -93,8 +93,8 @@ class TkMainWindow(object):
         self.buttonToggleFilter = ttk.Button(self.frameToolbar, style='Toolbutton', text="v", command=self.tk_filter_toggle)
         self.buttonToggleFilter.pack(side=RIGHT)
 
-        self.buttonShowSettings = ttk.Button(self.frameToolbar, style='Toolbutton', text=self.gui_messages['settings'], command=self.tk_open_settings_window)
-        self.buttonShowSettings.pack(side=RIGHT)
+        # self.buttonShowSettings = ttk.Button(self.frameToolbar, style='Toolbutton', text=self.gui_messages['settings'], command=self.tk_open_settings_window)
+        # self.buttonShowSettings.pack(side=RIGHT)
 
     def tk_filter_prepare(self):
         self.frameFilter = ttk.Frame(self.content, borderwidth=0, relief="flat", width=200, height=100)
