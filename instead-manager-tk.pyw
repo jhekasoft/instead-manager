@@ -110,27 +110,29 @@ class TkMainWindow(object):
         def gui_lang_change(widget):
             instead_manager_tk.list_action()
 
-        self.labelKeyword = Label(self.frameFilter, text="Search:")
+        self.labelKeyword = ttk.Label(self.frameFilter, text="Search:")
         self.entryKeyword = ttk.Entry(self.frameFilter, textvariable=self.gui_keyword, width=10)
         self.labelKeyword.pack(side=LEFT)
         self.entryKeyword.pack(side=LEFT)
 
-        self.labelRepository = Label(self.frameFilter, text="Repo:")
+        self.labelRepository = ttk.Label(self.frameFilter, text="Repo:")
         self.comboboxRepository = ttk.Combobox(self.frameFilter, state="readonly", width=16)
         self.comboboxRepository.bind("<<ComboboxSelected>>", gui_repository_change)
         self.labelRepository.pack(side=LEFT)
         self.comboboxRepository.pack(side=LEFT, padx=5)
 
-        self.labelLang = Label(self.frameFilter, text="Lang:")
+        self.labelLang = ttk.Label(self.frameFilter, text="Lang:")
         self.comboboxLang = ttk.Combobox(self.frameFilter, state="readonly", width=3)
         self.comboboxLang.bind("<<ComboboxSelected>>", gui_lang_change)
         self.labelLang.pack(side=LEFT)
         self.comboboxLang.pack(side=LEFT)
 
         self.gui_only_installed = IntVar()
+
         def gui_only_installed_change(a, b, c):
             instead_manager_tk.list_action()
-            #self.gui_only_installed.update_idletasks()
+            # self.gui_only_installed.update_idletasks()
+
         self.gui_only_installed.trace('w', gui_only_installed_change)
         self.checkboxOnlyInstalled = ttk.Checkbutton(self.frameFilter, text="Only installed", variable=self.gui_only_installed)
         self.checkboxOnlyInstalled.pack(side=LEFT)
