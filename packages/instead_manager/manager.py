@@ -403,11 +403,12 @@ class InsteadManagerWin(InsteadManager):
     default_config_path = '~\\Local Settings\\Application Data\\instead\\manager\\'
 
     def execute_run_game_command(self, game_name):
-        command = '%s -game "%s"' % (self.interpreter_command, game_name)
+        command = '"%s" -game "%s"' % (self.interpreter_command, game_name)
+        print(command)
         subprocess.Popen(command, shell=True)
 
     def execute_install_game_command(self, game_filename, quit_instead):
-        command = '%s -install "%s"%s' % (self.interpreter_command, game_filename, quit_instead)
+        command = '"%s" -install "%s"%s' % (self.interpreter_command, game_filename, quit_instead)
         return subprocess.call(command, shell=True)
 
 

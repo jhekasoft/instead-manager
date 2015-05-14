@@ -12,6 +12,7 @@ import tkinter.ttk as ttk
 # import tkinter.font as font
 import webbrowser
 from packages.instead_manager.manager import InsteadManagerFreeUnix, InsteadManagerWin, InsteadManagerMac, InsteadManagerHelper, RepositoryFilesAreMissingError
+from packages.instead_manager.interpreter_finder import InsteadInterpreterFinderFreeUnix, InsteadInterpreterFinderWin, InsteadInterpreterFinderMac
 
 
 class TkMainWindow(object):
@@ -388,13 +389,13 @@ if __name__ == "__main__":
     root = Tk(className='INSTEAD Manager')
 
     if InsteadManagerHelper.is_win():
-        instead_manager = InsteadManagerWin(base_path)
+        instead_manager = InsteadManagerWin(base_path, InsteadInterpreterFinderWin())
         instead_manager_tk = TkMainWindow(instead_manager, root)
     elif InsteadManagerHelper.is_mac():
-        instead_manager = InsteadManagerMac(base_path)
+        instead_manager = InsteadManagerMac(base_path, InsteadInterpreterFinderMac())
         instead_manager_tk = TkMainWindow(instead_manager, root)
     elif InsteadManagerHelper.is_free_unix():
-        instead_manager = InsteadManagerFreeUnix(base_path)
+        instead_manager = InsteadManagerFreeUnix(base_path, InsteadInterpreterFinderFreeUnix())
         instead_manager_tk = TkMainWindowFreeUnix(instead_manager, root)
     else:
         instead_manager = InsteadManagerFreeUnix(base_path)
