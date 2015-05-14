@@ -11,6 +11,7 @@ from xml.dom import minidom
 import re
 import urllib.request
 import json
+from datetime import datetime
 from abc import ABCMeta, abstractmethod
 
 from packages.instead_manager.interpreter_finder import InsteadInterpreterFinder
@@ -36,18 +37,7 @@ class InsteadManager(object, metaclass=ABCMeta):
 
         self.interpreter_finder = interpreter_finder
 
-        if not os.path.isfile(os.path.join(self.config_path, self.default_config_filename)):
-            shutil.copyfile(os.path.join(self.base_path, 'skeleton', self.skeleton_filename), self.config_filepath)
-
-            # Find and write interpreter command
-            interpreter_command = self.interpreter_finder.find_interpreter()
-            if interpreter_command:
-                tmp_settings = self.read_settings()
-                tmp_settings['interpreter_command'] = interpreter_command
-                tmp_settings['version'] = self.version
-                json_settings_file = open(self.config_filepath, "w")
-                json.dump(tmp_settings, json_settings_file, indent=4)
-                json_settings_file.close()
+        self.check_and_create_skeleton_settings()
 
         if None in (games_path, interpreter_command, repositories):
             settings = self.read_settings()
@@ -69,6 +59,29 @@ class InsteadManager(object, metaclass=ABCMeta):
             return os.makedirs(path)
 
         return True
+
+    def check_and_create_skeleton_settings(self):
+        settings_file_path = os.path.join(self.config_path, self.default_config_filename)
+        if os.path.isfile(settings_file_path):
+            tmp_settings = self.read_settings()
+            if 'version' in tmp_settings:
+                return
+
+            # Check old version config and remove it
+            shutil.move(settings_file_path,
+                        settings_file_path + '.' + datetime.now().strftime('%Y-%m-%d_%H_%M_%S') + '.bak')
+
+        shutil.copyfile(os.path.join(self.base_path, 'skeleton', self.skeleton_filename), self.config_filepath)
+
+        # Find and write interpreter command
+        interpreter_command = self.interpreter_finder.find_interpreter()
+        if interpreter_command:
+            tmp_settings = self.read_settings()
+            tmp_settings['interpreter_command'] = interpreter_command
+            tmp_settings['version'] = self.version
+            json_settings_file = open(self.config_filepath, "w")
+            json.dump(tmp_settings, json_settings_file, indent=4)
+            json_settings_file.close()
 
     def read_settings(self):
         # TODO: replace by Configurator
