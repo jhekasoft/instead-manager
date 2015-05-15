@@ -84,17 +84,21 @@ class TkMainWindow(object):
     def tk_toolbar_prepare(self):
         self.frameToolbar = ttk.Frame(self.content, borderwidth=0, relief="flat", width=200, height=100)
 
-        self.buttonUpdateRepository = ttk.Button(self.frameToolbar, style='Toolbutton', text=self.gui_messages['update_repo'], command=self.update_and_list_action)
+        self.iconUpdate = PhotoImage(file=os.path.join(self.instead_manager.base_path, 'resources', 'images', 'icons', 'update.gif'))
+        self.buttonUpdateRepository = ttk.Button(self.frameToolbar, style='Toolbutton', text=self.gui_messages['update_repo'], image=self.iconUpdate, compound=LEFT, command=self.update_and_list_action)
         self.buttonUpdateRepository.pack(side=LEFT)
 
-        self.buttonToggleGameInfo = ttk.Button(self.frameToolbar, style='Toolbutton', text=">", command=self.tk_game_info_toggle)
+        self.iconInfo = PhotoImage(file=os.path.join(self.instead_manager.base_path, 'resources', 'images', 'icons', 'info.gif'))
+        self.buttonToggleGameInfo = ttk.Button(self.frameToolbar, style='Toolbutton', text="Info", image=self.iconInfo, compound=LEFT, command=self.tk_game_info_toggle)
         self.buttonToggleGameInfo.pack(side=RIGHT)
 
-        self.buttonToggleFilter = ttk.Button(self.frameToolbar, style='Toolbutton', text="v", command=self.tk_filter_toggle)
+        self.iconFilter = PhotoImage(file=os.path.join(self.instead_manager.base_path, 'resources', 'images', 'icons', 'filter.gif'))
+        self.buttonToggleFilter = ttk.Button(self.frameToolbar, style='Toolbutton', text="Filter", image=self.iconFilter, compound=LEFT, command=self.tk_filter_toggle)
         self.buttonToggleFilter.pack(side=RIGHT)
 
-        # self.buttonShowSettings = ttk.Button(self.frameToolbar, style='Toolbutton', text=self.gui_messages['settings'], command=self.tk_open_settings_window)
-        # self.buttonShowSettings.pack(side=RIGHT)
+        self.iconSettings = PhotoImage(file=os.path.join(self.instead_manager.base_path, 'resources', 'images', 'icons', 'settings.gif'))
+        self.buttonShowSettings = ttk.Button(self.frameToolbar, style='Toolbutton', text=self.gui_messages['settings'], compound=LEFT, image=self.iconSettings, command=self.tk_open_settings_window)
+        self.buttonShowSettings.pack(side=RIGHT)
 
     def tk_filter_prepare(self):
         self.frameFilter = ttk.Frame(self.content, borderwidth=0, relief="flat", width=200, height=100)
@@ -141,8 +145,8 @@ class TkMainWindow(object):
     def tk_game_info_prepare(self):
         self.frameGameInfo = ttk.Frame(self.content, borderwidth=0, relief="flat", width=200, height=100, padding=(5, 0, 0, 0))
 
-        self.managerLogoFrame = ttk.Button(self.frameGameInfo, image=self.managerLogo)
-        self.labelGameTitle = ttk.Label(self.frameGameInfo, text='')
+        self.managerLogoFrame = ttk.Label(self.frameGameInfo, image=self.managerLogo, padding=(15, 0, 15, 0))
+        self.labelGameTitle = ttk.Label(self.frameGameInfo, text='', font="-weight bold")
         self.labelGameRepository = ttk.Label(self.frameGameInfo, text='')
         self.labelGameVersion = ttk.Label(self.frameGameInfo, text='')
         self.labelGameLang = ttk.Label(self.frameGameInfo, text='')
@@ -184,6 +188,7 @@ class TkMainWindow(object):
 
     def end_downloading_repositories(self, list=False):
         self.buttonUpdateRepository['text'] = self.gui_messages['update_repo']
+        self.buttonUpdateRepository['image'] = self.iconUpdate
         self.buttonUpdateRepository.state(['!disabled'])
         if list:
             self.is_games_need_update = True;
