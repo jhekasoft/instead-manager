@@ -9,6 +9,8 @@ import os
 from threading import Thread
 from tkinter import *
 import tkinter.ttk as ttk
+import tkinter.messagebox as messagebox
+import tkinter.filedialog as filedialog
 # import tkinter.font as font
 import webbrowser
 from packages.instead_manager.manager import InsteadManager, InsteadManagerFreeUnix, InsteadManagerWin, InsteadManagerMac, InsteadManagerHelper, RepositoryFilesAreMissingError
@@ -22,13 +24,14 @@ class TkMainWindow(object):
     gui_messages = {
         'update_repo': 'Update',
         'settings': 'Settings',
+        'test': 'Test',
     }
     gui_widgets = {}
     gui_frame_game_info_show = True
     gui_frame_filter_show = True
     is_games_need_update = False
 
-    def __init__(self, instead_manager:InsteadManager, root):
+    def __init__(self, instead_manager: InsteadManager, root: Tk):
         self.instead_manager = instead_manager
         self.root = root
 
@@ -79,7 +82,7 @@ class TkMainWindow(object):
         self.gui_frame_filter_show = not self.gui_frame_filter_show
 
     def tk_open_settings_window(self):
-        TkSettingsWindow(self.root, self.instead_manager)
+        TkSettingsWindow(self, self.instead_manager)
 
     def tk_toolbar_prepare(self):
         self.frameToolbar = ttk.Frame(self.content, borderwidth=0, relief="flat", width=200, height=100)
@@ -340,7 +343,8 @@ class TkMainWindow(object):
     def run_game_action(self):
         item = self.gui_selected_item
         name = self.treeGameList.item(item, "text")
-        self.instead_manager.run_game(name)
+        if not self.instead_manager.run_game(name):
+            messagebox.showerror("Running failed", "Running failed. Please check your INSTEAD command in the settings.")
 
     def delete_game_action(self):
         item = self.gui_selected_item
@@ -377,9 +381,10 @@ class TkMainWindowFreeUnix(TkMainWindow):
 
 class TkSettingsWindow(object):
 
-    def __init__(self, root, instead_manager:InsteadManager):
+    def __init__(self, main_window: TkMainWindow, instead_manager: InsteadManager):
+        self.main_window = main_window
         self.instead_manager = instead_manager
-        self.slave = Toplevel(root)
+        self.slave = Toplevel(main_window.root)
         self.slave.title('Settings')
         # self.slave.geometry('200x150+400+300')
         self.slave.resizable(width=FALSE, height=FALSE)
@@ -393,15 +398,21 @@ class TkSettingsWindow(object):
 
         self.labelCommand = ttk.Label(self.contentInterpreterCommand, text="INSTEAD command:")
         self.entryCommand = ttk.Entry(self.contentInterpreterCommand, textvariable=self.gui_interpreter_command, width=50)
-        self.buttonTestInterpreter = ttk.Button(self.contentInterpreterCommand, text="Test", command=self.test_interpreter)
+        self.buttonSelectInterpreter = ttk.Button(self.contentInterpreterCommand, text="...", width=3, style='Toolbutton', command=self.select_interpreter)
+        self.buttonFindInterpreter = ttk.Button(self.contentInterpreterCommand, text="Detect", command=self.find_interpreter)
+        self.buttonTestInterpreter = ttk.Button(self.contentInterpreterCommand, text=self.main_window.gui_messages["test"], command=self.test_interpreter)
         self.labelCommand.pack(side=LEFT)
         self.entryCommand.pack(side=LEFT)
+        self.buttonSelectInterpreter.pack(side=LEFT)
+        self.buttonFindInterpreter.pack(side=LEFT)
         self.buttonTestInterpreter.pack(side=LEFT)
 
         self.contentButtons = ttk.Frame(self.content, padding=(0, 15, 0, 0))
         self.contentButtons.pack()
         self.buttonSave = ttk.Button(self.contentButtons, text="Save", command=self.save)
+        self.buttonCancel = ttk.Button(self.contentButtons, text="Cancel", command=self.cancel)
         self.buttonSave.pack(side=LEFT)
+        self.buttonCancel.pack(side=LEFT)
 
         settings = self.instead_manager.read_settings()
         self.gui_interpreter_command.set(settings["interpreter_command"])
@@ -414,13 +425,29 @@ class TkSettingsWindow(object):
         settings = self.instead_manager.read_settings()
         settings["interpreter_command"] = self.gui_interpreter_command.get()
         self.instead_manager.save_settings(settings)
+        self.instead_manager.reload_settings()
+        self.slave.destroy()
+
+    def cancel(self):
+        self.slave.destroy()
+
+    def select_interpreter(self):
+        filename = filedialog.askopenfilename()
+        if filename:
+            self.gui_interpreter_command.set(filename)
+
+    def find_interpreter(self):
+        interpreter_command = self.instead_manager.interpreter_finder.find_interpreter()
+        if interpreter_command:
+            self.gui_interpreter_command.set(interpreter_command)
 
     def test_interpreter(self):
+        self.main_window.root.update_idletasks()
         check, info = self.instead_manager.check_instead_interpreter_with_info(self.gui_interpreter_command.get())
         if check:
-            print('OK')
+            messagebox.showinfo("INSTEAD is OK", "There is INSTEAD " + info + ".")
         else:
-            print('Fail')
+            messagebox.showerror("Running failed", "INSTEAD running failed.")
 
 if __name__ == "__main__":
     try:

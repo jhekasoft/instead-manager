@@ -22,9 +22,13 @@ class InsteadManager(object, metaclass=ABCMeta):
     skeleton_filename = 'instead-manager-settings.json'
     default_config_path = '~/.instead/manager/'
     default_config_filename = 'instead-manager-settings.json'
+    games_path = ''
+    interpreter_command = 'instead'
+    repositories = {}
+    repositories_directory = ''
+    tmp_game_path = ''
 
-    def __init__(self, base_path, interpreter_finder: InsteadInterpreterFinder=None,
-                 games_path=None, interpreter_command=None, repositories=None):
+    def __init__(self, base_path, interpreter_finder: InsteadInterpreterFinder=None):
         self.base_path = base_path
 
         # TODO: replace by Configurator
@@ -39,20 +43,7 @@ class InsteadManager(object, metaclass=ABCMeta):
 
         self.check_and_create_skeleton_settings()
 
-        if None in (games_path, interpreter_command, repositories):
-            settings = self.read_settings()
-
-        self.games_path = os.path.expanduser(games_path if games_path else settings['games_path'])
-        self.interpreter_command = interpreter_command if interpreter_command else settings['interpreter_command']
-
-        # Repositories
-        self.repositories = repositories if repositories else settings['repositories']
-        self.repositories_directory = os.path.join(self.config_path, 'repositories')
-        self.check_and_create_path(self.repositories_directory)
-
-        # Temp downloaded game path
-        self.tmp_game_path = os.path.join(self.config_path, 'games')
-        self.check_and_create_path(self.tmp_game_path)
+        self.reload_settings()
 
     def check_and_create_path(self, path):
         if not os.path.isdir(path):
@@ -81,18 +72,39 @@ class InsteadManager(object, metaclass=ABCMeta):
             tmp_settings['version'] = self.version
             self.save_settings(tmp_settings)
 
+    def reload_settings(self):
+        settings = self.read_settings()
+
+        self.games_path = os.path.expanduser(settings['games_path'])
+        self.interpreter_command = settings['interpreter_command']
+
+        # Repositories
+        self.repositories = settings['repositories']
+        self.repositories_directory = os.path.join(self.config_path, 'repositories')
+        self.check_and_create_path(self.repositories_directory)
+
+        # Temp downloaded game path
+        self.tmp_game_path = os.path.join(self.config_path, 'games')
+        self.check_and_create_path(self.tmp_game_path)
+
     def read_settings(self):
-        # TODO: replace by Configurator
         """
         Loading config from JSON-file
 
         :return:
         """
+        # TODO: replace by Configurator
         json_settings_data = open(self.config_filepath)
 
         return json.load(json_settings_data)
 
     def save_settings(self, settings):
+        """
+        Saving config to the JSON-file
+
+        :return:
+        """
+        # TODO: replace by Configurator
         json_settings_file = open(self.config_filepath, "w")
         json.dump(settings, json_settings_file, indent=4)
         return json_settings_file.close()
@@ -318,7 +330,7 @@ class InsteadManager(object, metaclass=ABCMeta):
         result = urllib.request.urlretrieve(game['url'], game_tmp_filename, download_status_callback)
 
         base_game_filename = self.get_response_filename(result[1], game['url'])
-        game_filename = '%s%s' % (self.tmp_game_path, base_game_filename)
+        game_filename = os.path.join(self.tmp_game_path, base_game_filename)
 
         # Copying game to the file with normal name
         shutil.copy(game_tmp_filename, game_filename)
@@ -364,8 +376,11 @@ class InsteadManager(object, metaclass=ABCMeta):
         if len(files) > 0:
             running_name = running_name+'.idf'
 
-        self.execute_run_game_command(running_name)
-        return True
+        command_result = self.execute_run_game_command(running_name)
+        if command_result is 0:
+            return True
+
+        return False
 
     def delete_game(self, name):
         game_folder_path = self.games_path + name
@@ -410,7 +425,7 @@ class InsteadManager(object, metaclass=ABCMeta):
 class InsteadManagerFreeUnix(InsteadManager):
     def execute_run_game_command(self, game_name):
         command = '%s -game "%s" &>/dev/null' % (self.interpreter_command, game_name)
-        subprocess.Popen(command, shell=True)
+        return subprocess.call(command, shell=True)
 
     def execute_install_game_command(self, game_filename, quit_instead):
         command = '%s -install "%s"%s' % (self.interpreter_command, game_filename, quit_instead)
@@ -422,8 +437,7 @@ class InsteadManagerWin(InsteadManager):
 
     def execute_run_game_command(self, game_name):
         command = '"%s" -game "%s"' % (self.interpreter_command, game_name)
-        print(command)
-        subprocess.Popen(command, shell=True)
+        return subprocess.call(command, shell=True)
 
     def execute_install_game_command(self, game_filename, quit_instead):
         command = '"%s" -install "%s"%s' % (self.interpreter_command, game_filename, quit_instead)
@@ -435,7 +449,7 @@ class InsteadManagerMac(InsteadManager):
 
     def execute_run_game_command(self, game_name):
         command = 'export LC_CTYPE=C; open -a "%s" --args -game "%s"' % (self.interpreter_command, game_name)
-        subprocess.Popen(command, shell=True)
+        return subprocess.call(command, shell=True)
 
     def execute_install_game_command(self, game_filename, quit_instead):
         command = '"%s" -install "%s"%s' % (self.interpreter_command, game_filename, quit_instead)
