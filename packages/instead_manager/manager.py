@@ -18,7 +18,7 @@ from packages.instead_manager.interpreter_finder import InsteadInterpreterFinder
 
 
 class InsteadManager(object, metaclass=ABCMeta):
-    version = '0.16'
+    version = '0.17'
     skeleton_filename = 'instead-manager-settings.json'
     default_config_path = '~/.instead/manager/'
     default_config_filename = 'instead-manager-settings.json'
@@ -431,7 +431,7 @@ class InsteadManager(object, metaclass=ABCMeta):
 
 class InsteadManagerFreeUnix(InsteadManager):
     def execute_run_game_command(self, game_name):
-        command = '%s -game "%s" &>/dev/null' % (self.interpreter_command, game_name)
+        command = '%s -game "%s"' % (self.interpreter_command, game_name)
         return subprocess.call(command, shell=True)
 
     def execute_install_game_command(self, game_filename, quit_instead):
