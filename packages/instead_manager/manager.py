@@ -27,6 +27,8 @@ class InsteadManager(object, metaclass=ABCMeta):
     repositories = {}
     repositories_directory = ''
     tmp_game_path = ''
+    gui_game_info_show = True
+    gui_filter_show = True
 
     def __init__(self, base_path, interpreter_finder: InsteadInterpreterFinder=None):
         self.base_path = base_path
@@ -86,6 +88,11 @@ class InsteadManager(object, metaclass=ABCMeta):
         # Temp downloaded game path
         self.tmp_game_path = os.path.join(self.config_path, 'games')
         self.check_and_create_path(self.tmp_game_path)
+
+        # GUI settings
+        self.gui_game_info_show =\
+            False if 'gui_game_info_show' in settings and not settings['gui_game_info_show'] else True
+        self.gui_filter_show = False if 'gui_filter_show' in settings and not settings['gui_filter_show'] else True
 
     def read_settings(self):
         """

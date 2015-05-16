@@ -58,9 +58,12 @@ class TkMainWindow(object):
         self.content.pack(fill=BOTH, expand=True)
         self.frameToolbar.grid(column=0, row=0, columnspan=3, sticky=(N, S, E, W))
         self.frameGames.grid(column=0, row=2, columnspan=3, rowspan=1, sticky=(N, S, E, W))
+
+        # Panels
+        self.gui_frame_game_info_show = self.instead_manager.gui_game_info_show
+        self.gui_frame_filter_show = self.instead_manager.gui_filter_show
         self.tk_filter_toggle()
         self.tk_game_info_toggle()
-        # self.buttonUpdateRepository.grid(column=0, row=4, sticky=(N, S, E, W))
 
     def tk_theme_prepare(self):
         pass
@@ -71,6 +74,11 @@ class TkMainWindow(object):
         else:
             self.frameGameInfo.grid_forget()
 
+        # Saves panel state
+        settings = self.instead_manager.read_settings()
+        settings['gui_game_info_show'] = self.gui_frame_game_info_show
+        self.instead_manager.save_settings(settings)
+
         self.gui_frame_game_info_show = not self.gui_frame_game_info_show
 
     def tk_filter_toggle(self):
@@ -78,6 +86,11 @@ class TkMainWindow(object):
             self.frameFilter.grid(column=0, row=1, columnspan=3, sticky=(N, S, E, W))
         else:
             self.frameFilter.grid_forget()
+
+        # Saves panel state
+        settings = self.instead_manager.read_settings()
+        settings['gui_filter_show'] = self.gui_frame_filter_show
+        self.instead_manager.save_settings(settings)
 
         self.gui_frame_filter_show = not self.gui_frame_filter_show
 
