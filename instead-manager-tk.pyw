@@ -11,7 +11,7 @@ from tkinter import *
 import tkinter.ttk as ttk
 # import tkinter.font as font
 import webbrowser
-from packages.instead_manager.manager import InsteadManagerFreeUnix, InsteadManagerWin, InsteadManagerMac, InsteadManagerHelper, RepositoryFilesAreMissingError
+from packages.instead_manager.manager import InsteadManager, InsteadManagerFreeUnix, InsteadManagerWin, InsteadManagerMac, InsteadManagerHelper, RepositoryFilesAreMissingError
 from packages.instead_manager.interpreter_finder import InsteadInterpreterFinderFreeUnix, InsteadInterpreterFinderWin, InsteadInterpreterFinderMac
 
 
@@ -28,7 +28,7 @@ class TkMainWindow(object):
     gui_frame_filter_show = True
     is_games_need_update = False
 
-    def __init__(self, instead_manager, root):
+    def __init__(self, instead_manager:InsteadManager, root):
         self.instead_manager = instead_manager
         self.root = root
 
@@ -79,7 +79,7 @@ class TkMainWindow(object):
         self.gui_frame_filter_show = not self.gui_frame_filter_show
 
     def tk_open_settings_window(self):
-        TkSettingsWindow()
+        TkSettingsWindow(self.root, self.instead_manager)
 
     def tk_toolbar_prepare(self):
         self.frameToolbar = ttk.Frame(self.content, borderwidth=0, relief="flat", width=200, height=100)
@@ -377,13 +377,50 @@ class TkMainWindowFreeUnix(TkMainWindow):
 
 class TkSettingsWindow(object):
 
-    def __init__(self):
+    def __init__(self, root, instead_manager:InsteadManager):
+        self.instead_manager = instead_manager
         self.slave = Toplevel(root)
         self.slave.title('Settings')
-        self.slave.geometry('200x150+400+300')
+        # self.slave.geometry('200x150+400+300')
+        self.slave.resizable(width=FALSE, height=FALSE)
+
+        self.gui_interpreter_command = StringVar()
+        self.content = ttk.Frame(self.slave, padding=(5, 5, 5, 5))
+        self.content.pack()
+
+        self.contentInterpreterCommand = ttk.Frame(self.content)
+        self.contentInterpreterCommand.pack()
+
+        self.labelCommand = ttk.Label(self.contentInterpreterCommand, text="INSTEAD command:")
+        self.entryCommand = ttk.Entry(self.contentInterpreterCommand, textvariable=self.gui_interpreter_command, width=50)
+        self.buttonTestInterpreter = ttk.Button(self.contentInterpreterCommand, text="Test", command=self.test_interpreter)
+        self.labelCommand.pack(side=LEFT)
+        self.entryCommand.pack(side=LEFT)
+        self.buttonTestInterpreter.pack(side=LEFT)
+
+        self.contentButtons = ttk.Frame(self.content, padding=(0, 15, 0, 0))
+        self.contentButtons.pack()
+        self.buttonSave = ttk.Button(self.contentButtons, text="Save", command=self.save)
+        self.buttonSave.pack(side=LEFT)
+
+        settings = self.instead_manager.read_settings()
+        self.gui_interpreter_command.set(settings["interpreter_command"])
+
         self.slave.grab_set()
         self.slave.focus_set()
         self.slave.wait_window()
+
+    def save(self):
+        settings = self.instead_manager.read_settings()
+        settings["interpreter_command"] = self.gui_interpreter_command.get()
+        self.instead_manager.save_settings(settings)
+
+    def test_interpreter(self):
+        check, info = self.instead_manager.check_instead_interpreter_with_info(self.gui_interpreter_command.get())
+        if check:
+            print('OK')
+        else:
+            print('Fail')
 
 if __name__ == "__main__":
     try:

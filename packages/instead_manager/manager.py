@@ -79,9 +79,7 @@ class InsteadManager(object, metaclass=ABCMeta):
             tmp_settings = self.read_settings()
             tmp_settings['interpreter_command'] = interpreter_command
             tmp_settings['version'] = self.version
-            json_settings_file = open(self.config_filepath, "w")
-            json.dump(tmp_settings, json_settings_file, indent=4)
-            json_settings_file.close()
+            self.save_settings(tmp_settings)
 
     def read_settings(self):
         # TODO: replace by Configurator
@@ -93,6 +91,11 @@ class InsteadManager(object, metaclass=ABCMeta):
         json_settings_data = open(self.config_filepath)
 
         return json.load(json_settings_data)
+
+    def save_settings(self, settings):
+        json_settings_file = open(self.config_filepath, "w")
+        json.dump(settings, json_settings_file, indent=4)
+        return json_settings_file.close()
 
     def get_repository_files(self):
         files = glob.glob('%s/*.xml' % self.repositories_directory)
@@ -379,9 +382,11 @@ class InsteadManager(object, metaclass=ABCMeta):
         return False
         # self.out("Folder '%s' doesn't exist. Is name correct?" % game_folder_path)
 
-    def check_instead_interpreter_with_info(self):
+    def check_instead_interpreter_with_info(self, interpreter_command=None):
         if self.interpreter_finder is not None:
-            return self.interpreter_finder.check_interpreter(self.interpreter_command)
+            if interpreter_command is None:
+                interpreter_command = self.interpreter_command
+            return self.interpreter_finder.check_interpreter(interpreter_command)
 
         return False, 'Interpreter finder is not set'
 
