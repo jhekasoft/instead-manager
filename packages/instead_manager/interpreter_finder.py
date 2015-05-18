@@ -63,6 +63,8 @@ class InsteadInterpreterFinderWin(InsteadInterpreterFinder):
         for drive in drives:
             self.exact_file_paths.append(drive + 'Program Files\Games\INSTEAD\sdl-instead.exe')
             self.exact_file_paths.append(drive + 'Program Files (x86)\Games\INSTEAD\sdl-instead.exe')
+            self.exact_file_paths.append(drive + 'Program Files\INSTEAD\sdl-instead.exe')
+            self.exact_file_paths.append(drive + 'Program Files (x86)\INSTEAD\sdl-instead.exe')
 
 
 if __name__ == "__main__":

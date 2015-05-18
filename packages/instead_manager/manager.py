@@ -18,7 +18,7 @@ from packages.instead_manager.interpreter_finder import InsteadInterpreterFinder
 
 
 class InsteadManager(object, metaclass=ABCMeta):
-    version = '0.17'
+    version = '0.18'
     skeleton_filename = 'instead-manager-settings.json'
     default_config_path = '~/.instead/manager/'
     default_config_filename = 'instead-manager-settings.json'
@@ -29,6 +29,7 @@ class InsteadManager(object, metaclass=ABCMeta):
     tmp_game_path = ''
     gui_game_info_show = True
     gui_filter_show = True
+    lang = None
 
     def __init__(self, base_path, interpreter_finder: InsteadInterpreterFinder=None):
         self.base_path = base_path
@@ -93,6 +94,8 @@ class InsteadManager(object, metaclass=ABCMeta):
         self.gui_game_info_show =\
             False if 'gui_game_info_show' in settings and not settings['gui_game_info_show'] else True
         self.gui_filter_show = False if 'gui_filter_show' in settings and not settings['gui_filter_show'] else True
+
+        self.lang = settings['lang'] if 'lang' in settings else None
 
     def read_settings(self):
         """

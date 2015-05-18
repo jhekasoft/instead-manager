@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=INSTEAD-manager
+Exec=/home/<user/.instead>/instead-manager/instead-manager-tk.pyw
+Icon=/home/<user./instead>/instead-manager/resources/images/logo.png
+Version=0.17
+Type=Application
+Categories=Game;INSTEAD;
+GenericName=Manager for INSTEAD repositories
+GenericName[ru]=Менеджер репозиториев INSTEAD

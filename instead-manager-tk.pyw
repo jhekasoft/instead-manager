@@ -15,17 +15,13 @@ import tkinter.filedialog as filedialog
 import webbrowser
 from packages.instead_manager.manager import InsteadManager, InsteadManagerFreeUnix, InsteadManagerWin, InsteadManagerMac, InsteadManagerHelper, RepositoryFilesAreMissingError
 from packages.instead_manager.interpreter_finder import InsteadInterpreterFinderFreeUnix, InsteadInterpreterFinderWin, InsteadInterpreterFinderMac
+import gettext
 
 
 class TkMainWindow(object):
     gui_game_list = {}
     gui_selected_item = ''
     gui_installed_game_index = None
-    gui_messages = {
-        'update_repo': 'Update',
-        'settings': 'Settings',
-        'test': 'Test',
-    }
     gui_widgets = {}
     gui_frame_game_info_show = True
     gui_frame_filter_show = True
@@ -34,6 +30,14 @@ class TkMainWindow(object):
     def __init__(self, instead_manager: InsteadManager, root: Tk):
         self.instead_manager = instead_manager
         self.root = root
+
+        # Translation
+        try:
+            lang = gettext.translation('messages', localedir='locale', languages=[self.instead_manager.lang])
+            lang.install()
+        except Exception:
+            import builtins
+            builtins.__dict__['_'] = lambda s: s
 
         self.tk_theme_prepare()
 
@@ -101,19 +105,19 @@ class TkMainWindow(object):
         self.frameToolbar = ttk.Frame(self.content, borderwidth=0, relief="flat", width=200, height=100)
 
         self.iconUpdate = PhotoImage(file=os.path.join(self.instead_manager.base_path, 'resources', 'images', 'icons', 'update.gif'))
-        self.buttonUpdateRepository = ttk.Button(self.frameToolbar, style='Toolbutton', text=self.gui_messages['update_repo'], image=self.iconUpdate, compound=LEFT, command=self.update_and_list_action)
+        self.buttonUpdateRepository = ttk.Button(self.frameToolbar, style='Toolbutton', text=_('Update'), image=self.iconUpdate, compound=LEFT, command=self.update_and_list_action)
         self.buttonUpdateRepository.pack(side=LEFT)
 
         self.iconInfo = PhotoImage(file=os.path.join(self.instead_manager.base_path, 'resources', 'images', 'icons', 'info.gif'))
-        self.buttonToggleGameInfo = ttk.Button(self.frameToolbar, style='Toolbutton', text="Info", image=self.iconInfo, compound=LEFT, command=self.tk_game_info_toggle)
+        self.buttonToggleGameInfo = ttk.Button(self.frameToolbar, style='Toolbutton', text=_('Info'), image=self.iconInfo, compound=LEFT, command=self.tk_game_info_toggle)
         self.buttonToggleGameInfo.pack(side=RIGHT)
 
         self.iconFilter = PhotoImage(file=os.path.join(self.instead_manager.base_path, 'resources', 'images', 'icons', 'filter.gif'))
-        self.buttonToggleFilter = ttk.Button(self.frameToolbar, style='Toolbutton', text="Filter", image=self.iconFilter, compound=LEFT, command=self.tk_filter_toggle)
+        self.buttonToggleFilter = ttk.Button(self.frameToolbar, style='Toolbutton', text=_('Filter'), image=self.iconFilter, compound=LEFT, command=self.tk_filter_toggle)
         self.buttonToggleFilter.pack(side=RIGHT)
 
         self.iconSettings = PhotoImage(file=os.path.join(self.instead_manager.base_path, 'resources', 'images', 'icons', 'settings.gif'))
-        self.buttonShowSettings = ttk.Button(self.frameToolbar, style='Toolbutton', text=self.gui_messages['settings'], compound=LEFT, image=self.iconSettings, command=self.tk_open_settings_window)
+        self.buttonShowSettings = ttk.Button(self.frameToolbar, style='Toolbutton', text=_('Settings'), compound=LEFT, image=self.iconSettings, command=self.tk_open_settings_window)
         self.buttonShowSettings.pack(side=RIGHT)
 
     def tk_filter_prepare(self):
@@ -131,18 +135,18 @@ class TkMainWindow(object):
         def gui_lang_change(widget):
             instead_manager_tk.list_action()
 
-        self.labelKeyword = ttk.Label(self.frameFilter, text="Search:")
+        self.labelKeyword = ttk.Label(self.frameFilter, text=_('Search')+':')
         self.entryKeyword = ttk.Entry(self.frameFilter, textvariable=self.gui_keyword, width=10)
         self.labelKeyword.pack(side=LEFT)
         self.entryKeyword.pack(side=LEFT)
 
-        self.labelRepository = ttk.Label(self.frameFilter, text="Repo:")
+        self.labelRepository = ttk.Label(self.frameFilter, text=_('Repo')+':')
         self.comboboxRepository = ttk.Combobox(self.frameFilter, state="readonly", width=16)
         self.comboboxRepository.bind("<<ComboboxSelected>>", gui_repository_change)
         self.labelRepository.pack(side=LEFT)
         self.comboboxRepository.pack(side=LEFT, padx=5)
 
-        self.labelLang = ttk.Label(self.frameFilter, text="Lang:")
+        self.labelLang = ttk.Label(self.frameFilter, text=_('Lang')+':')
         self.comboboxLang = ttk.Combobox(self.frameFilter, state="readonly", width=3)
         self.comboboxLang.bind("<<ComboboxSelected>>", gui_lang_change)
         self.labelLang.pack(side=LEFT)
@@ -155,7 +159,7 @@ class TkMainWindow(object):
             # self.gui_only_installed.update_idletasks()
 
         self.gui_only_installed.trace('w', gui_only_installed_change)
-        self.checkboxOnlyInstalled = ttk.Checkbutton(self.frameFilter, text="Only installed", variable=self.gui_only_installed)
+        self.checkboxOnlyInstalled = ttk.Checkbutton(self.frameFilter, text=_('Only installed'), variable=self.gui_only_installed)
         self.checkboxOnlyInstalled.pack(side=LEFT)
 
     def tk_game_info_prepare(self):
@@ -166,10 +170,10 @@ class TkMainWindow(object):
         self.labelGameRepository = ttk.Label(self.frameGameInfo, text='')
         self.labelGameVersion = ttk.Label(self.frameGameInfo, text='')
         self.labelGameLang = ttk.Label(self.frameGameInfo, text='')
-        self.buttonGamePlay = ttk.Button(self.frameGameInfo, text="Play", command=self.run_game_action)
-        self.buttonGameDelete = ttk.Button(self.frameGameInfo, text="Delete", command=self.delete_game_action)
-        self.buttonGameInstall = ttk.Button(self.frameGameInfo, text="Install", command=self.install_game_action)
-        self.buttonGameOpenInfo = ttk.Button(self.frameGameInfo, text="Details", command=self.game_info_page_open)
+        self.buttonGamePlay = ttk.Button(self.frameGameInfo, text=_('Play'), command=self.run_game_action)
+        self.buttonGameDelete = ttk.Button(self.frameGameInfo, text=_('Delete'), command=self.delete_game_action)
+        self.buttonGameInstall = ttk.Button(self.frameGameInfo, text=_('Install'), command=self.install_game_action)
+        self.buttonGameOpenInfo = ttk.Button(self.frameGameInfo, text=_('Details'), command=self.game_info_page_open)
 
         self.managerLogoFrame.pack()
         self.labelGameTitle.pack()
@@ -183,9 +187,9 @@ class TkMainWindow(object):
         self.treeGameList.column("title", width=400)
         self.treeGameList.column("version", width=70)
         self.treeGameList.column("size", width=70)
-        self.treeGameList.heading("title", text="Title")
-        self.treeGameList.heading("version", text="Version")
-        self.treeGameList.heading("size", text="Size")
+        self.treeGameList.heading("title", text=_('Title'))
+        self.treeGameList.heading("version", text=_('Version'))
+        self.treeGameList.heading("size", text=_('Size'))
         self.treeGameList.tag_configure('installed', background='#f0f0f0')
         self.treeGameList.bind('<<TreeviewSelect>>', self.on_game_select)
         self.treeGameList.bind("<Double-1>", self.on_game_list_double_click)
@@ -200,10 +204,10 @@ class TkMainWindow(object):
         webbrowser.open_new(self.gui_game_list[self.gui_selected_item]['descurl'])
 
     def begin_repository_downloading_callback(self, repository):
-        self.buttonUpdateRepository['text'] = 'Updating...'
+        self.buttonUpdateRepository['text'] = _('Updating...')
 
     def end_downloading_repositories(self, list=False):
-        self.buttonUpdateRepository['text'] = self.gui_messages['update_repo']
+        self.buttonUpdateRepository['text'] = _('Update')
         self.buttonUpdateRepository['image'] = self.iconUpdate
         self.buttonUpdateRepository.state(['!disabled'])
         if list:
@@ -292,7 +296,7 @@ class TkMainWindow(object):
             self.treeGameList.set(item, 'title', '%s %s' % (self.gui_game_list[item]['title'], s))
 
     def begin_installation_callback(self, item):
-        self.treeGameList.set(item, 'title', '%s installing...' % self.gui_game_list[item]['title'])
+        self.treeGameList.set(item, 'title', self.gui_game_list[item]['title'] + ' ' + _('installing...'))
 
     def end_installation(self, item, game, result):
         self.gui_game_list[item]['installing'] = False
@@ -357,7 +361,8 @@ class TkMainWindow(object):
         item = self.gui_selected_item
         name = self.treeGameList.item(item, "text")
         if not self.instead_manager.run_game(name):
-            messagebox.showerror("Running failed", "Running failed. Please check your INSTEAD command in the settings.")
+            messagebox.showerror(_('Running failed'),
+                                 _('Running failed. Please check your INSTEAD command in the settings.'))
 
     def delete_game_action(self):
         item = self.gui_selected_item
@@ -398,7 +403,7 @@ class TkSettingsWindow(object):
         self.main_window = main_window
         self.instead_manager = instead_manager
         self.slave = Toplevel(main_window.root)
-        self.slave.title('Settings')
+        self.slave.title(_('Settings'))
         # self.slave.geometry('200x150+400+300')
         self.slave.resizable(width=FALSE, height=FALSE)
 
@@ -409,11 +414,11 @@ class TkSettingsWindow(object):
         self.contentInterpreterCommand = ttk.Frame(self.content)
         self.contentInterpreterCommand.pack()
 
-        self.labelCommand = ttk.Label(self.contentInterpreterCommand, text="INSTEAD command:")
+        self.labelCommand = ttk.Label(self.contentInterpreterCommand, text=_('INSTEAD command')+':')
         self.entryCommand = ttk.Entry(self.contentInterpreterCommand, textvariable=self.gui_interpreter_command, width=50)
         self.buttonSelectInterpreter = ttk.Button(self.contentInterpreterCommand, text="...", width=3, style='Toolbutton', command=self.select_interpreter)
-        self.buttonFindInterpreter = ttk.Button(self.contentInterpreterCommand, text="Detect", command=self.find_interpreter)
-        self.buttonTestInterpreter = ttk.Button(self.contentInterpreterCommand, text=self.main_window.gui_messages["test"], command=self.test_interpreter)
+        self.buttonFindInterpreter = ttk.Button(self.contentInterpreterCommand, text=_('Detect'), command=self.find_interpreter)
+        self.buttonTestInterpreter = ttk.Button(self.contentInterpreterCommand, text=_('Test'), command=self.test_interpreter)
         self.labelCommand.pack(side=LEFT)
         self.entryCommand.pack(side=LEFT)
         self.buttonSelectInterpreter.pack(side=LEFT)
@@ -422,8 +427,8 @@ class TkSettingsWindow(object):
 
         self.contentButtons = ttk.Frame(self.content, padding=(0, 15, 0, 0))
         self.contentButtons.pack()
-        self.buttonSave = ttk.Button(self.contentButtons, text="Save", command=self.save)
-        self.buttonCancel = ttk.Button(self.contentButtons, text="Cancel", command=self.cancel)
+        self.buttonSave = ttk.Button(self.contentButtons, text=_('Save'), command=self.save)
+        self.buttonCancel = ttk.Button(self.contentButtons, text=_('Cancel'), command=self.cancel)
         self.buttonSave.pack(side=LEFT)
         self.buttonCancel.pack(side=LEFT)
 
@@ -458,9 +463,9 @@ class TkSettingsWindow(object):
         self.main_window.root.update_idletasks()
         check, info = self.instead_manager.check_instead_interpreter_with_info(self.gui_interpreter_command.get())
         if check:
-            messagebox.showinfo("INSTEAD is OK", "There is INSTEAD " + info + ".")
+            messagebox.showinfo(_('INSTEAD is OK'), _('There is INSTEAD') + ' ' + info + ".")
         else:
-            messagebox.showerror("Running failed", "INSTEAD running failed.")
+            messagebox.showerror(_('Running failed'), _('INSTEAD running failed.'))
 
 if __name__ == "__main__":
     try:
