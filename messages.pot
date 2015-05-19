@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
-"POT-Creation-Date: 2015-05-18 23:16+EEST\n"
+"POT-Creation-Date: 2015-05-20 00:42+EEST\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,111 +15,119 @@ msgstr ""
 "Generated-By: pygettext.py 1.5\n"
 
 
-#: instead-manager-tk.pyw:103 instead-manager-tk.pyw:205
+#: instead-manager-tk.pyw:109 instead-manager-tk.pyw:211
 msgid "Update"
 msgstr ""
 
-#: instead-manager-tk.pyw:107
+#: instead-manager-tk.pyw:113
 msgid "Info"
 msgstr ""
 
-#: instead-manager-tk.pyw:111
+#: instead-manager-tk.pyw:117
 msgid "Filter"
 msgstr ""
 
-#: instead-manager-tk.pyw:115 instead-manager-tk.pyw:401
+#: instead-manager-tk.pyw:121 instead-manager-tk.pyw:407
 msgid "Settings"
 msgstr ""
 
-#: instead-manager-tk.pyw:133
+#: instead-manager-tk.pyw:139
 msgid "Search"
 msgstr ""
 
-#: instead-manager-tk.pyw:138
+#: instead-manager-tk.pyw:144
 msgid "Repo"
 msgstr ""
 
-#: instead-manager-tk.pyw:144
+#: instead-manager-tk.pyw:150
 msgid "Lang"
 msgstr ""
 
-#: instead-manager-tk.pyw:157
+#: instead-manager-tk.pyw:163
 msgid "Only installed"
 msgstr ""
 
-#: instead-manager-tk.pyw:168
+#: instead-manager-tk.pyw:174
 msgid "Play"
 msgstr ""
 
-#: instead-manager-tk.pyw:169
+#: instead-manager-tk.pyw:175
 msgid "Delete"
 msgstr ""
 
-#: instead-manager-tk.pyw:170
+#: instead-manager-tk.pyw:176
 msgid "Install"
 msgstr ""
 
-#: instead-manager-tk.pyw:171
+#: instead-manager-tk.pyw:177
 msgid "Details"
 msgstr ""
 
-#: instead-manager-tk.pyw:185
+#: instead-manager-tk.pyw:191
 msgid "Title"
 msgstr ""
 
-#: instead-manager-tk.pyw:186
+#: instead-manager-tk.pyw:192
 msgid "Version"
 msgstr ""
 
-#: instead-manager-tk.pyw:187
+#: instead-manager-tk.pyw:193
 msgid "Size"
 msgstr ""
 
-#: instead-manager-tk.pyw:202
+#: instead-manager-tk.pyw:208
 msgid "Updating..."
 msgstr ""
 
-#: instead-manager-tk.pyw:294
+#: instead-manager-tk.pyw:300
 msgid "installing..."
 msgstr ""
 
-#: instead-manager-tk.pyw:359 instead-manager-tk.pyw:463
+#: instead-manager-tk.pyw:365 instead-manager-tk.pyw:489
 msgid "Running failed"
 msgstr ""
 
-#: instead-manager-tk.pyw:360
+#: instead-manager-tk.pyw:366
 msgid "Running failed. Please check your INSTEAD command in the settings."
 msgstr ""
 
-#: instead-manager-tk.pyw:412
+#: instead-manager-tk.pyw:419
 msgid "INSTEAD command"
 msgstr ""
 
-#: instead-manager-tk.pyw:415
+#: instead-manager-tk.pyw:422
 msgid "Detect"
 msgstr ""
 
-#: instead-manager-tk.pyw:416
+#: instead-manager-tk.pyw:423
 msgid "Test"
 msgstr ""
 
-#: instead-manager-tk.pyw:425
+#: instead-manager-tk.pyw:435
+msgid "Language"
+msgstr ""
+
+#: instead-manager-tk.pyw:437
+msgid "restart required"
+msgstr ""
+
+#: instead-manager-tk.pyw:448
 msgid "Save"
 msgstr ""
 
-#: instead-manager-tk.pyw:426
+#: instead-manager-tk.pyw:449
 msgid "Cancel"
 msgstr ""
 
-#: instead-manager-tk.pyw:461
+#: instead-manager-tk.pyw:487
 msgid "INSTEAD is OK"
 msgstr ""
 
-#: instead-manager-tk.pyw:461
+#: instead-manager-tk.pyw:487
 msgid "There is INSTEAD"
 msgstr ""
 
-#: instead-manager-tk.pyw:463
+#: instead-manager-tk.pyw:489
 msgid "INSTEAD running failed."
 msgstr ""
 

@@ -33,7 +33,8 @@ class TkMainWindow(object):
 
         # Translation
         try:
-            lang = gettext.translation('messages', localedir='locale', languages=[self.instead_manager.lang])
+            lang = gettext.translation('messages', localedir=self.instead_manager.locale_dir,
+                                       languages=[self.instead_manager.lang])
             lang.install()
         except Exception:
             import builtins
@@ -411,29 +412,50 @@ class TkSettingsWindow(object):
         self.content = ttk.Frame(self.slave, padding=(5, 5, 5, 5))
         self.content.pack()
 
-        self.contentInterpreterCommand = ttk.Frame(self.content)
-        self.contentInterpreterCommand.pack()
+        # Interpreter command
+        self.frameInterpreterCommand = ttk.Frame(self.content)
+        self.frameInterpreterCommand.pack(fill=X)
 
-        self.labelCommand = ttk.Label(self.contentInterpreterCommand, text=_('INSTEAD command')+':')
-        self.entryCommand = ttk.Entry(self.contentInterpreterCommand, textvariable=self.gui_interpreter_command, width=50)
-        self.buttonSelectInterpreter = ttk.Button(self.contentInterpreterCommand, text="...", width=3, style='Toolbutton', command=self.select_interpreter)
-        self.buttonFindInterpreter = ttk.Button(self.contentInterpreterCommand, text=_('Detect'), command=self.find_interpreter)
-        self.buttonTestInterpreter = ttk.Button(self.contentInterpreterCommand, text=_('Test'), command=self.test_interpreter)
+        self.labelCommand = ttk.Label(self.frameInterpreterCommand, text=_('INSTEAD command')+':', width=16)
+        self.entryCommand = ttk.Entry(self.frameInterpreterCommand, textvariable=self.gui_interpreter_command, width=50)
+        self.buttonSelectInterpreter = ttk.Button(self.frameInterpreterCommand, text="...", width=3, style='Toolbutton', command=self.select_interpreter)
+        self.buttonFindInterpreter = ttk.Button(self.frameInterpreterCommand, text=_('Detect'), command=self.find_interpreter)
+        self.buttonTestInterpreter = ttk.Button(self.frameInterpreterCommand, text=_('Test'), command=self.test_interpreter)
         self.labelCommand.pack(side=LEFT)
         self.entryCommand.pack(side=LEFT)
         self.buttonSelectInterpreter.pack(side=LEFT)
         self.buttonFindInterpreter.pack(side=LEFT)
         self.buttonTestInterpreter.pack(side=LEFT)
+        # Interpreter command end
 
+        # Language
+        self.frameLanguage = ttk.Frame(self.content)
+        self.frameLanguage.pack(fill=X)
+
+        self.labelLanguage = ttk.Label(self.frameLanguage, text=_('Language')+':', width=16)
+        self.comboboxLanguage = ttk.Combobox(self.frameLanguage, state="readonly", width=6)
+        self.labelLanguageDesc = ttk.Label(self.frameLanguage, text='(' + _('restart required') + ')')
+        self.labelLanguage.pack(side=LEFT)
+        self.comboboxLanguage.pack(side=LEFT)
+        self.labelLanguageDesc.pack(side=LEFT)
+
+        self.comboboxLanguage['values'] = self.instead_manager.get_available_locale_languages()
+        # Language end
+
+        # Buttons
         self.contentButtons = ttk.Frame(self.content, padding=(0, 15, 0, 0))
         self.contentButtons.pack()
         self.buttonSave = ttk.Button(self.contentButtons, text=_('Save'), command=self.save)
         self.buttonCancel = ttk.Button(self.contentButtons, text=_('Cancel'), command=self.cancel)
         self.buttonSave.pack(side=LEFT)
         self.buttonCancel.pack(side=LEFT)
+        # Buttons end
 
         settings = self.instead_manager.read_settings()
         self.gui_interpreter_command.set(settings["interpreter_command"])
+        self.comboboxLanguage.set(settings["lang"]
+                                  if "lang" in settings and settings["lang"] in self.comboboxLanguage['values'] else
+                                  self.instead_manager.default_lang)
 
         self.slave.grab_set()
         self.slave.focus_set()
@@ -442,6 +464,7 @@ class TkSettingsWindow(object):
     def save(self):
         settings = self.instead_manager.read_settings()
         settings["interpreter_command"] = self.gui_interpreter_command.get()
+        settings["lang"] = self.comboboxLanguage.get()
         self.instead_manager.save_settings(settings)
         self.instead_manager.reload_settings()
         self.slave.destroy()

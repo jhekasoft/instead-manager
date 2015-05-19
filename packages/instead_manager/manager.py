@@ -11,6 +11,7 @@ from xml.dom import minidom
 import re
 import urllib.request
 import json
+import locale
 from datetime import datetime
 from abc import ABCMeta, abstractmethod
 
@@ -25,11 +26,13 @@ class InsteadManager(object, metaclass=ABCMeta):
     games_path = ''
     interpreter_command = 'instead'
     repositories = {}
-    repositories_directory = ''
+    repositories_dir = ''
     tmp_game_path = ''
     gui_game_info_show = True
     gui_filter_show = True
     lang = None
+    locale_dir = 'locale'
+    default_lang = 'en'
 
     def __init__(self, base_path, interpreter_finder: InsteadInterpreterFinder=None):
         self.base_path = base_path
@@ -46,6 +49,13 @@ class InsteadManager(object, metaclass=ABCMeta):
 
         self.check_and_create_skeleton_settings()
 
+        # Detect user language if it is absent in settings
+        # TODO: optimize settings reading (only one time)
+        tmp_settings = self.read_settings()
+        if 'lang' not in tmp_settings:
+            tmp_settings['lang'] = self.detect_user_system_language()
+        self.save_settings(tmp_settings)
+
         self.reload_settings()
 
     def check_and_create_path(self, path):
@@ -58,6 +68,7 @@ class InsteadManager(object, metaclass=ABCMeta):
         settings_file_path = os.path.join(self.config_path, self.default_config_filename)
         if os.path.isfile(settings_file_path):
             tmp_settings = self.read_settings()
+
             if 'version' in tmp_settings:
                 return
 
@@ -83,8 +94,8 @@ class InsteadManager(object, metaclass=ABCMeta):
 
         # Repositories
         self.repositories = settings['repositories']
-        self.repositories_directory = os.path.join(self.config_path, 'repositories')
-        self.check_and_create_path(self.repositories_directory)
+        self.repositories_dir = os.path.join(self.config_path, 'repositories')
+        self.check_and_create_path(self.repositories_dir)
 
         # Temp downloaded game path
         self.tmp_game_path = os.path.join(self.config_path, 'games')
@@ -120,10 +131,10 @@ class InsteadManager(object, metaclass=ABCMeta):
         return json_settings_file.close()
 
     def get_repository_files(self):
-        files = glob.glob('%s/*.xml' % self.repositories_directory)
+        files = glob.glob('%s/*.xml' % self.repositories_dir)
         if not files:
             raise RepositoryFilesAreMissingError('No repository files in %s. Please try to update it.' %
-                                                 self.repositories_directory)
+                                                 self.repositories_dir)
 
         return files
 
@@ -190,7 +201,6 @@ class InsteadManager(object, metaclass=ABCMeta):
 
         langs = list(map(lambda lang: lang.strip(), raw_langs))
         return langs
-
 
     def get_local_game_list(self):
         files = glob.glob('%s*' % self.games_path)
@@ -316,7 +326,7 @@ class InsteadManager(object, metaclass=ABCMeta):
             if begin_repository_downloading_callback:
                 begin_repository_downloading_callback(repository)
 
-            filename = os.path.join(self.repositories_directory, repository['name']+'.xml')
+            filename = os.path.join(self.repositories_dir, repository['name']+'.xml')
 
             try:
                 urllib.request.urlretrieve(repository['url'], filename, download_status_callback)
@@ -418,6 +428,14 @@ class InsteadManager(object, metaclass=ABCMeta):
     def check_instead_interpreter(self):
         check, info = self.check_instead_interpreter_with_info()
         return check
+
+    def get_available_locale_languages(self):
+        dir = self.base_path + '/' + self.locale_dir
+        return [self.default_lang] + [lang for lang in os.listdir(dir) if os.path.isdir(os.path.join(dir, lang))]
+
+    def detect_user_system_language(self):
+        system_locale = locale.getdefaultlocale()
+        return system_locale[0][:2] if 0 in system_locale else self.default_lang
 
     @abstractmethod
     def execute_run_game_command(self, game_name):
