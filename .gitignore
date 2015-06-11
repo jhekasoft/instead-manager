@@ -3,3 +3,7 @@
 /temp/
 /dist/
 /.idea/
+/build/
+/dist/
+/__pycache__
+/.DS_Store
