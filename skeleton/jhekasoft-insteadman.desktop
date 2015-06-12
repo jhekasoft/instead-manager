@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=INSTEAD Manager
+Exec=/usr/local/bin/insteadman-gui
+Icon=/usr/local/share/insteadman/resources/images/logo.png
+Type=Application
+Categories=Game;INSTEAD;
+GenericName=INSTEAD Manager

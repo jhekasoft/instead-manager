@@ -19,7 +19,7 @@ from packages.instead_manager.interpreter_finder import InsteadInterpreterFinder
 
 
 class InsteadManager(object, metaclass=ABCMeta):
-    version = '0.18'
+    version = '0.19'
     skeleton_filename = 'instead-manager-settings.json'
     default_config_path = '~/.instead/manager/'
     default_config_filename = 'instead-manager-settings.json'
