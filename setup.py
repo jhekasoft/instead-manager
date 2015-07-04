@@ -8,10 +8,12 @@ Usage:
 from setuptools import setup
 
 APP = ['instead-manager-tk.pyw']
-DATA_FILES = ['packages']
-OPTIONS = {'argv_emulation': True}
+DATA_FILES = ['instead-manager-tk.pyw']
+OPTIONS = {'argv_emulation': True, 'packages': ['packages'], 'resources': ['resources', 'skeleton'],
+           'iconfile': 'resources/images/logo.icns'}
 
 setup(
+    name='INSTEAD Manager',
     app=APP,
     data_files=DATA_FILES,
     options={'py2app': OPTIONS},
