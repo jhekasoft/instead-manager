@@ -30,4 +30,20 @@ if sys.platform == 'darwin':
         setup_requires=['py2app'],
     )
 elif sys.platform == 'win32':
-    pass
+    import py2exe
+    import packages
+
+    # Reserve recipe
+    # import sys
+    # sys.path.append('./packages')
+
+    # TODO: add resources
+    options = {"includes": ['xml'], "packages": ["packages"]}
+    setup(
+        name=app_name,
+        #console=[main_script],
+        windows=[{"script": main_script}],
+        options={"py2exe": options},
+        #data_files=['resources'],
+        setup_requires=['py2exe'],
+    )

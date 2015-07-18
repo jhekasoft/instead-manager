@@ -284,7 +284,6 @@ class TkMainWindow(object):
         else:
             self.install_game_action()
 
-
     def download_status_callback(self, item, blocknum, blocksize, totalsize):
         loadedsize = blocknum * blocksize
         if loadedsize > totalsize:

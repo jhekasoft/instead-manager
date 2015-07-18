@@ -15,7 +15,7 @@ import locale
 from datetime import datetime
 from abc import ABCMeta, abstractmethod
 
-from packages.instead_manager.interpreter_finder import InsteadInterpreterFinder
+from .interpreter_finder import InsteadInterpreterFinder
 
 
 class InsteadManager(object, metaclass=ABCMeta):
