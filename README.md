@@ -46,7 +46,7 @@ python3 instead-manager.py -h
 Windows systems:
 
 ```
-C:\Python34\python.exe instead-manager.py -h
+py -3.4 instead-manager.py -h
 ```
 
 GUI
@@ -65,7 +65,7 @@ python3 instead-manager-tk.py
 Windows systems:
 
 ```
-C:\Python34\python.exe instead-manager-tk.py
+py -3.4 instead-manager-tk.py
 ```
 
 Documentation
