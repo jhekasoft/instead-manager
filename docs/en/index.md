@@ -36,12 +36,20 @@ py -3.4 setup.py py2exe
 
 Look result at the `dist` directory.
 
+5. Install `Inno Setup` (unicode version)
+
+6. Open `setup.iss` and build.
+
 Create OS X application
 =======================
 
 1. Install `Python 3`.
 
-2. Install `py2app`.
+2. Install `py2app`:
+
+```
+pip install -U py2app
+```
 
 3. Build:
 
