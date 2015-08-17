@@ -1,0 +1,11 @@
+# Site settings
+title: INSTEAD Manager
+email: jhekasoft@gmail.com
+description: INSTED Manager for games
+baseurl: "" # the subpath of your site, e.g. /blog/
+url: "http://insteas.club" # the base hostname & protocol for your site
+twitter_username: jhekasoft
+github_username:  jhekasoft
+
+# Build settings
+markdown: kramdown
