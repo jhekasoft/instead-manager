@@ -51,6 +51,8 @@
 <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
 <script src="{{ "/assets/js/ie10-viewport-bug-workaround.js" | prepend: site.baseurl }}"></script>
 
+<script src="{{ "/assets/js/main.js?v" | prepend: site.baseurl | append: site.asset_version }}"></script>
+
 <script type="text/javascript">
 var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
 document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
