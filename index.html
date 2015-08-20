@@ -4,16 +4,16 @@ show_carousel: false
 ---
 
 <div class="jumbotron">
-    <div class="row">
-        <div class="col-lg-9">
-            <h1>INSTEAD Manager</h1>
-            <p class="lead">
-                Играйте в текстовые приключения для INSTEAD!
-            </p>
+    <div class="media">
+        <div class="media-body">
+            <h1 class="media-heading">INSTEAD Manager</h1>
+            <p>Играйте в текстовые приключения для INSTEAD!</p>
             <p><a class="btn btn-lg btn-success" href="{{ "/about" | prepend: site.baseurl }}" role="button">Подробнее &raquo;</a></p>
         </div>
-        <div class="col-lg-3">
-            <img src="{{ "/assets/img/logo/instead-manager.png" | prepend: site.baseurl }}" alt="INSTEAD Manager" width="210">
+        <div class="media-right">
+            <a href="#">
+                <img class="media-object" src="{{ "/assets/img/logo/instead-manager.png" | prepend: site.baseurl }}" alt="INSTEAD Manager" width="210">
+            </a>
         </div>
     </div>
 </div>
