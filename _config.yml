@@ -6,6 +6,7 @@ baseurl: "" # the subpath of your site, e.g. /blog/
 url: "http://instead.club" # the base hostname & protocol for your site
 twitter_username: jhekasoft
 github_username:  jhekasoft
+asset_version: 1
 
 # Build settings
 markdown: kramdown
