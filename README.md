@@ -1,6 +1,8 @@
 instead-manager
 ===============
 
+There is old version. `InsteadMan 2` is available here: http://github.com/jhekasoft/insteadman.
+
 Manager for INSTEAD repositories. It's working on GNU/Linux, Windows and probably on the other UNIX-systems
 (FreeBSD, MacOS etc).
 
